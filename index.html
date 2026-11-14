@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff8e9">
+<title>HappyHome · 我的私人小屋</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:24px 16px 50px;
+ background:#fff8e9;color:#69584e;
+ font-family:"Microsoft YaHei",sans-serif;
+}
+.page{max-width:650px;margin:auto}
+header{text-align:center;padding:35px 10px 25px}
+.ribbon{font-size:30px;color:#d98ca2}
+h1{font-family:Georgia,serif;font-size:42px;margin:8px 0;color:#bd8290}
+.subtitle{font-size:13px;letter-spacing:3px;color:#a99585}
+.search{margin:18px 0 28px}
+.search input{
+ width:100%;padding:15px 20px;border:1px solid #ead7c6;
+ border-radius:30px;background:#fffdf8;font-size:15px;
+ outline:none;color:#69584e;
+}
+.welcome{
+ background:#fffdf8;border:1px solid #eedfcf;
+ border-radius:22px;padding:22px;margin-bottom:24px;
+ box-shadow:0 5px 18px #b99b8010;
+}
+.welcome h2{font-size:19px;margin:0 0 9px;color:#bd8290}
+.welcome p{font-size:13px;line-height:1.8;margin:0;color:#9a887a}
+.section-title{font-size:15px;margin:25px 4px 14px;color:#a77d7e}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.item{
+ border:1px solid #edddce;background:#fffdf8;border-radius:20px;
+ padding:20px 14px;text-align:center;cursor:pointer;
+ box-shadow:0 4px 12px #b99b800d;transition:.2s;
+}
+.item:active{transform:scale(.97)}
+.item .icon{font-size:30px;margin-bottom:9px}
+.item .name{font-size:15px;color:#806b60;font-weight:bold}
+.item .desc{font-size:11px;color:#b09c8d;margin-top:6px}
+.item.hidden{display:none}
+footer{text-align:center;margin-top:35px;font-size:11px;color:#b7a494;line-height:2}
+#notice{
+ display:none;margin-top:20px;padding:16px;border-radius:16px;
+ background:#fff0f1;color:#a87582;text-align:center;font-size:13px;
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+ <div class="ribbon">୨୧</div>
+ <h1>HappyHome</h1>
+ <div class="subtitle">MY LITTLE PRIVATE HOME</div>
+</header>
+
+<div class="search">
+ <input id="search" type="search" placeholder="⌕  搜索我的小屋……">
+</div>
+
+<section class="welcome">
+ <h2>Welcome Home ♡</h2>
+ <p>欢迎回到你的小天地。把喜欢的资料、灵感和珍藏，都好好收纳在这里。</p>
+</section>
+
+<div class="section-title">♡ 我的收藏空间</div>
+<main class="grid" id="grid">
+ <div class="item" data-name="小手机">
+  <div class="icon">📱</div>
+  <div class="name">小手机</div>
+  <div class="desc">免费 · 付费</div>
+ </div>
+ <div class="item" data-name="API 地址">
+  <div class="icon">🔗</div>
+  <div class="name">API 地址</div>
+  <div class="desc">收纳连接地址</div>
+ </div>
+ <div class="item" data-name="世界书">
+  <div class="icon">📚</div>
+  <div class="name">世界书</div>
+  <div class="desc">整理与收藏</div>
+ </div>
+ <div class="item" data-name="预设">
+  <div class="icon">🎀</div>
+  <div class="name">预设</div>
+  <div class="desc">我的专属预设</div>
+ </div>
+ <div class="item" data-name="人设">
+  <div class="icon">🧸</div>
+  <div class="name">人设</div>
+  <div class="desc">角色资料收藏</div>
+ </div>
+ <div class="item" data-name="美化">
+  <div class="icon">🌷</div>
+  <div class="name">美化</div>
+  <div class="desc">装饰与主题素材</div>
+ </div>
+ <div class="item" data-name="字体">
+  <div class="icon">✒️</div>
+  <div class="name">字体</div>
+  <div class="desc">字体收藏与预览</div>
+ </div>
+</main>
+
+<div id="notice"></div>
+<footer>
+ ୨୧ &nbsp; HappyHome · A little place of my own &nbsp; ୨୧
+</footer>
+</div>
+
+<script>
+const search=document.getElementById('search');
+const items=[...document.querySelectorAll('.item')];
+const notice=document.getElementById('notice');
+
+search.addEventListener('input',()=>{
+ const q=search.value.trim().toLowerCase();
+ items.forEach(item=>{
+  item.classList.toggle('hidden',
+   !item.dataset.name.toLowerCase().includes(q));
+ });
+});
+
+items.forEach(item=>{
+ item.addEventListener('click',()=>{
+  notice.style.display='block';
+  notice.textContent='♡ '+item.dataset.name+' 模块正在搭建中，之后会在这里开放。';
+ });
+});
+</script>
+</body>
+</html>
