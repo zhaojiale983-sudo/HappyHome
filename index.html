@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#fff8e8">
+<link rel="icon" href="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png">
+<title>HappyHome</title>
+<style>
+:root{
+ --bg:#fff8e8;
+ --paper:#fffdf7;
+ --cream:#fff3d9;
+ --pink:#dba3ad;
+ --pink-light:#f8e8e8;
+ --brown:#796858;
+ --muted:#b09d88;
+ --line:#eee0c9;
+ --shadow:0 4px 15px #9c805012;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--brown);font-family:"Microsoft YaHei",sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:active{transform:scale(.98)}
+.app{max-width:760px;margin:auto;min-height:100vh;padding:0 15px 90px}
+header{text-align:center;padding:22px 0 15px}
+.logo{width:76px;height:76px;object-fit:contain}
+.brand{font:38px Georgia;color:#bd8791;margin:3px 0}
+.subtitle{font-size:10px;letter-spacing:3px;color:var(--muted)}
+.search{margin:12px 0 18px;position:relative}
+.search input{padding-left:40px}
+.search:before{content:"⌕";position:absolute;left:15px;top:7px;font-size:25px;color:var(--pink)}
+input,textarea,select{
+ width:100%;padding:12px;border:1px solid var(--line);border-radius:13px;
+ background:#fffefa;color:var(--brown);outline:none;min-width:0
+}
+input:focus,textarea:focus,select:focus{border-color:var(--pink)}
+textarea{min-height:150px;resize:vertical;line-height:1.6}
+button{border:0}
+.primary{background:var(--pink);color:white;border-radius:12px;padding:11px 16px}
+.soft{background:var(--pink-light);color:#a97883;border:1px solid #f0d9dc;border-radius:12px;padding:9px 13px}
+.plain{background:var(--cream);color:var(--brown);border:1px solid var(--line);border-radius:12px;padding:9px 13px}
+.danger{background:#fff0e9;color:#b66c60;border:1px solid #f0d8ce;border-radius:12px;padding:9px 13px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:17px;margin:13px 0;box-shadow:var(--shadow)}
+h2{font-size:19px;color:#bd8993;margin:4px 0 14px}
+h3{font-size:14px;color:#a78c76;margin:17px 0 10px}
+.welcome{background:linear-gradient(135deg,#fffdf5,#fff2dc);text-align:center;padding:24px 15px}
+.welcome p{font-size:13px;color:var(--muted);line-height:1.8}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{background:var(--paper);border:1px solid var(--line);border-radius:19px;padding:20px 10px;text-align:center;color:var(--brown);box-shadow:var(--shadow)}
+.tile .ico{font-size:30px;margin-bottom:8px}
+.tile strong{display:block;font-size:14px}
+.tile small{display:block;color:var(--muted);margin-top:5px;font-size:11px}
+.back{background:none;color:#bd8993;padding:12px 0}
+.hidden{display:none!important}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.toolbar button{font-size:13px}
+.field{margin:12px 0}
+.field label{display:block;font-size:12px;color:#9b8176;margin-bottom:6px}
+.phone-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.phone-card{background:white;border:1px solid var(--line);border-radius:18px;padding:15px 6px;text-align:center;min-width:0;box-shadow:var(--shadow)}
+.phone-icon{width:65px;height:65px;display:flex;align-items:center;justify-content:center;margin:0 auto 9px;font-size:39px}
+.phone-icon img{width:100%;height:100%;object-fit:contain}
+.phone-card strong{font-size:13px;overflow-wrap:anywhere}
+.phone-card small{display:block;color:var(--muted);margin-top:5px}
+.add-card{background:#fffaf0;border:1px dashed #d8b6ae;border-radius:18px;min-height:120px;color:#bd8993;font-size:30px}
+.form-card{background:white;border:1px solid var(--line);border-radius:19px;padding:15px}
+.big-icon{width:100px;height:100px;border:1px dashed #d9b9b4;border-radius:23px;background:#fff8ed;display:flex;align-items:center;justify-content:center;margin:5px auto 16px;font-size:43px;overflow:hidden}
+.big-icon img{width:100%;height:100%;object-fit:contain}
+.list{display:grid;gap:10px;margin-top:14px}
+.entry{background:white;border:1px solid var(--line);border-radius:16px;padding:14px}
+.entry-top{display:flex;align-items:center;gap:10px;min-width:0}
+.entry-icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.entry-icon img{width:100%;height:100%;object-fit:contain}
+.entry-name{font-weight:bold;overflow-wrap:anywhere}
+.entry-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.entry-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.entry-actions button{font-size:11px;padding:7px 9px}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:13px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fffdf6ee;backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:3}
+.bottom-inner{width:min(760px,100%);display:flex;justify-content:space-around;padding:9px 3px calc(9px + env(safe-area-inset-bottom))}
+.nav-item{background:none;color:var(--muted);font-size:11px;padding:3px 8px}
+.nav-item span{display:block;font-size:19px;margin-bottom:3px}
+.nav-item.active{color:#bd8993}
+.modal{position:fixed;inset:0;background:#55463866;display:flex;align-items:center;justify-content:center;padding:14px;z-index:8}
+.modalbox{background:var(--paper);border-radius:21px;padding:18px;width:min(100%,540px);max-height:90vh;overflow:auto}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+.modal-actions button{flex:1}
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#796858;color:white;padding:10px 17px;border-radius:20px;font-size:12px;z-index:20}
+.tag{display:inline-block;padding:3px 8px;border-radius:10px;background:#fff1e5;color:#ad8c77;font-size:10px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;line-height:1.7}
+footer{text-align:center;color:#b8a596;font-size:10px;padding:24px}
+@media(max-width:390px){.phone-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.phone-icon{width:55px;height:55px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<img class="logo" src="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png" alt="HappyHome">
+<div class="brand">HappyHome</div>
+<div class="subtitle">MY LITTLE PRIVATE HOME</div>
+</header>
+
+<div id="homePage">
+ <div class="search"><input id="globalSearch" placeholder="搜索名称、文件和内容……"></div>
+ <div class="panel welcome">
+  <h2>Welcome Home ♡</h2>
+  <p>把喜欢的资料、灵感和珍藏，<br>都收进这个属于你的小空间。</p>
+  <span style="color:#d4a2a5">୨୧ &nbsp; Take it easy &nbsp; ୨୧</span>
+ </div>
+ <h3>我的收藏空间</h3>
+ <div class="grid" id="homeTiles"></div>
+ <div id="searchResults"></div>
+</div>
+
+<div id="modulePage" class="hidden">
+ <button class="back" id="goHome">← 返回首页</button>
+ <div class="panel">
+  <h2 id="moduleTitle"></h2>
+  <div id="moduleTools"></div>
+  <div id="moduleBody"></div>
+ </div>
+</div>
+</div>
+
+<nav class="bottom-nav">
+ <div class="bottom-inner">
+  <button class="nav-item active" data-nav="home"><span>⌂</span>首页</button>
+  <button class="nav-item" data-nav="phone"><span>📱</span>小手机</button>
+  <button class="nav-item" data-nav="world"><span>📚</span>世界书</button>
+  <button class="nav-item" data-nav="preset"><span>🎀</span>预设</button>
+  <button class="nav-item" data-nav="more"><span>♡</span>更多</button>
+ </div>
+</nav>
+
+<div id="modal" class="modal hidden">
+ <div class="modalbox">
+  <h2 id="modalTitle">编辑资料</h2>
+  <div id="modalBody"></div>
+  <div class="modal-actions">
+   <button class="primary" id="modalSave">保存</button>
+   <button class="soft" id="modalCancel">取消</button>
+  </div>
+ </div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+"use strict";
+
+const MODULES=[
+ {id:"phone",name:"小手机",icon:"📱",desc:"免费 · 付费"},
+ {id:"api",name:"API 地址",icon:"🔗",desc:"地址与密钥管理"},
+ {id:"world",name:"世界书",icon:"📚",desc:"世界书文件收藏"},
+ {id:"preset",name:"预设",icon:"🎀",desc:"预设文件收藏"},
+ {id:"persona",name:"人设",icon:"🧸",desc:"角色资料"},
+ {id:"beauty",name:"美化",icon:"🌷",desc:"美化素材"},
+ {id:"font",name:"字体",icon:"✒️",desc:"字体预览"}
+];
+const DBKEY="happyhome-v3";
+let db={};
+let current="home";
+let currentFilter="全部";
+let editingId=null;
+let pendingIcon="";
+let toastTimer=null;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+function notify(msg){
+ $("toast").textContent=msg;
+ $("toast").classList.remove("hidden");
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),1800);
+}
+function load(){
+ try{db=JSON.parse(localStorage.getItem(DBKEY)||"{}")}catch(e){db={}}
+ MODULES.forEach(m=>{if(!Array.isArray(db[m.id]))db[m.id]=[]});
+}
+function save(){
+ try{localStorage.setItem(DBKEY,JSON.stringify(db));return true}
+ catch(e){notify("保存失败：浏览器存储空间可能不足");return false}
+}
+function downloadFile(name,content,type="text/plain"){
+ const blob=new Blob([content],{type});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;a.download=name;a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function setNav(id){
+ document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));
+}
+function showHome(){
+ current="home";
+ $("homePage").classList.remove("hidden");
+ $("modulePage").classList.add("hidden");
+ setNav("home");
+ $("globalSearch").value="";
+ renderHome();
+}
+function renderHome(){
+ $("homeTiles").innerHTML=MODULES.map(m=>`
+ <button class="tile" data-open="${m.id}">
+  <div class="ico">${m.icon}</div><strong>${m.name}</strong><small>${m.desc}</small>
+ </button>`).join("");
+ document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openModule(b.dataset.open));
+}
+function openModule(id){
+ current=id;currentFilter="全部";
+ $("homePage").classList.add("hidden");
+ $("modulePage").classList.remove("hidden");
+ const m=MODULES.find(x=>x.id===id);
+ $("moduleTitle").textContent=m.icon+" "+m.name;
+ setNav(id);
+ renderModule();
+}
+function categories(){
+ const arr=db[current].map(x=>x.category||"默认分类");
+ return ["全部","默认分类",...new Set(arr.filter(x=>x!=="默认分类"))];
+}
+function renderModule(){
+ if(current==="phone"){renderPhones();return}
+ const isFile=["world","preset","beauty"].includes(current);
+ let html=`<div class="toolbar">
+ <button class="primary" id="addItem">＋ 新增</button>
+ <button class="soft" id="importFiles">导入文件</button>
+ </div>`;
+ if(isFile){
+  html+=`<div class="toolbar">
+  <select id="categoryFilter">${categories().map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+  <button class="soft" id="newCategory">＋ 新建分类</button>
+  </div>`;
+ }
+ if(current==="font"){
+  html+=`<div class="field"><label>字体预览文字</label><input id="fontTest" value="HappyHome 你好，世界！123"></div>
+  <div id="fontPreview" class="panel" style="font-size:25px">HappyHome 你好，世界！123</div>`;
+ }
+ if(current==="api")html+=`<p style="font-size:12px;color:#aa9684">地址、密码、URL 和密钥分别保存。敏感内容请勿在公共设备上使用。</p>`;
+ $("moduleTools").innerHTML=html;
+ $("addItem").onclick=()=>editRecord(null);
+ $("importFiles").onclick=()=>importFiles();
+ if(isFile){
+  $("categoryFilter").value=currentFilter;
+  $("categoryFilter").onchange=e=>{currentFilter=e.target.value;renderModule()};
+  $("newCategory").onclick=()=>{
+   const name=prompt("请输入新分类名称");
+   if(!name?.trim())return;
+   if(categories().includes(name.trim()))return notify("这个分类已经存在");
+   currentFilter=name.trim();
+   renderModule();
+  };
+ }
+ if(current==="font"){
+  $("fontTest").oninput=e=>$("fontPreview").textContent=e.target.value;
+ }
+ renderRecords(isFile);
+}
+function renderRecords(isFile){
+ let records=db[current].filter(x=>!isFile||currentFilter==="全部"||(x.category||"默认分类")===currentFilter);
+ if(!records.length){
+  $("moduleBody").innerHTML='<div class="empty">୨୧ 这里还没有资料，点击上方新增开始吧。</div>';
+  return;
+ }
+ $("moduleBody").innerHTML=`<div class="list">${records.map(x=>`
+ <div class="entry">
+  <div class="entry-top">
+   <div class="entry-icon">${x.iconUrl?`<img src="${esc(x.iconUrl)}">`:esc(x.icon||"📄")}</div>
+   <div style="min-width:0;flex:1">
+    <div class="entry-name">${esc(x.name||"未命名")}</div>
+    <div class="entry-meta">${esc(x.category||"")}</div>
+   </div>
+  </div>
+  <div class="entry-actions">
+   <button class="soft" data-action="view" data-id="${x.id}">查看</button>
+   <button class="soft" data-action="edit" data-id="${x.id}">编辑</button>
+   <button class="soft" data-action="copy" data-id="${x.id}">复制</button>
+   <button class="soft" data-action="download" data-id="${x.id}">下载</button>
+   <button class="danger" data-action="delete" data-id="${x.id}">删除</button>
+  </div>
+ </div>`).join("")}</div>`;
+ document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>recordAction(b.dataset.action,b.dataset.id));
+}
+function renderPhones(){
+ $("moduleTools").innerHTML=`
+ <div class="toolbar">
+ <button class="soft" data-phone-filter="全部">全部</button>
+ <button class="soft" data-phone-filter="免费">免费</button>
+ <button class="soft" data-phone-filter="付费">付费</button>
+ </div>`;
+ document.querySelectorAll("[data-phone-filter]").forEach(b=>{
+  b.onclick=()=>{currentFilter=b.dataset.phoneFilter;renderPhoneList()};
+ });
+ renderPhoneList();
+}
+function renderPhoneList(){
+ const arr=db.phone.filter(x=>currentFilter==="全部"||(x.category||"免费")===currentFilter);
+ $("moduleBody").innerHTML=`<div class="phone-grid">
+ ${arr.map(x=>`
+  <div class="phone-card" data-phone-open="${x.id}">
+   <div class="phone-icon">${x.iconUrl?`<img src="${esc(x.iconUrl)}">`:esc(x.icon||"📱")}</div>
+   <strong>${esc(x.name)}</strong>
+   <small>${esc(x.category||"免费")}</small>
+  </div>`).join("")}
+ <button class="add-card" id="addPhone">＋</button>
+ </div>`;
+ $("addPhone").onclick=()=>editPhone(null);
+ document.querySelectorAll("[data-phone-open]").forEach(card=>{
+  let timer;
+  let longPressed=false;
+  card.addEventListener("contextmenu",e=>{e.preventDefault();phoneManage(card.dataset.phoneOpen)});
+  card.addEventListener("touchstart",()=>{
+   longPressed=false;
+   timer=setTimeout(()=>{longPressed=true;phoneManage(card.dataset.phoneOpen)},550);
+  },{passive:true});
+  card.addEventListener("touchend",()=>clearTimeout(timer));
+  card.addEventListener("touchmove",()=>clearTimeout(timer));
+  card.addEventListener("click",()=>{
+   if(longPressed){longPressed=false;return}
+   openPhone(card.dataset.phoneOpen);
+  });
+ });
+}
+function openPhone(id){
+ const x=db.phone.find(a=>a.id===id);if(!x)return;
+ if(!x.url)return notify("请先编辑并填写网址");
+ let url=x.url.trim();
+ if(!/^https?:\/\//i.test(url))url="https://"+url;
+ if(x.browser==="chrome"){
+  const noScheme=url.replace(/^https?:\/\//i,"");
+  window.location.href="googlechrome://"+noScheme;
+  setTimeout(()=>window.open(url,"_blank"),700);
+ }else if(x.browser==="edge"){
+  window.location.href="microsoft-edge:"+url;
+  setTimeout(()=>window.open(url,"_blank"),700);
+ }else{
+  window.open(url,"_blank","noopener");
+ }
+}
+function phoneManage(id){
+ const x=db.phone.find(a=>a.id===id);if(!x)return;
+ openModal("管理："+x.name,`
+ <div class="toolbar">
+ <button class="soft" id="phoneEdit">编辑</button>
+ <button class="soft" id="phoneCopy">复制</button>
+ <button class="danger" id="phoneDelete">删除</button>
+ </div>
+ <p style="font-size:12px;color:#aa9684">${esc(x.description||"暂无简介")}</p>`);
+ $("modalSave").classList.add("hidden");
+ $("phoneEdit").onclick=()=>editPhone(x);
+ $("phoneCopy").onclick=()=>{
+  db.phone.push({...x,id:uid(),name:x.name+"（副本）"});
+  save();closeModal();renderPhoneList();notify("已复制");
+ };
+ $("phoneDelete").onclick=()=>{
+  if(confirm("确定删除这个小手机吗？")){
+   db.phone=db.phone.filter(a=>a.id!==id);save();closeModal();renderPhoneList();
+  }
+ };
+}
+function editPhone(x){
+ editingId=x?.id||null;pendingIcon=x?.iconUrl||"";
+ openModal(x?"编辑小手机":"新增小手机",`
+ <div class="form-card">
+  <div class="big-icon" id="bigIcon">${pendingIcon?`<img src="${esc(pendingIcon)}">`:esc(x?.icon||"📱")}</div>
+  <div class="field"><label>上传图标图片（可选）</label><input type="file" id="phoneImage" accept="image/*"></div>
+  <div class="field"><label>图标 Emoji（可选）</label><input id="phoneEmoji" value="${esc(x?.icon||"📱")}" maxlength="8"></div>
+  <div class="field"><label>名称</label><input id="phoneName" value="${esc(x?.name||"")}" placeholder="请输入名称"></div>
+  <div class="field"><label>简介</label><textarea id="phoneDescription" placeholder="请输入简介">${esc(x?.description||"")}</textarea></div>
+  <div class="field"><label>密码</label><input id="phonePassword" type="password" value="${esc(x?.password||"")}"></div>
+  <div class="field"><label>网址</label><input id="phoneUrl" value="${esc(x?.url||"")}" placeholder="https://"></div>
+  <div class="field"><label>分类</label><select id="phoneCategory">
+   <option ${(!x||x.category==="免费")?"selected":""}>免费</option>
+   <option ${x?.category==="付费"?"selected":""}>付费</option>
+  </select></div>
+  <div class="field"><label>打开方式（浏览器）</label><select id="phoneBrowser">
+   <option value="default">系统默认浏览器</option>
+   <option value="chrome" ${x?.browser==="chrome"?"selected":""}>Chrome</option>
+   <option value="edge" ${x?.browser==="edge"?"selected":""}>Edge</option>
+  </select></div>
+ </div>`);
+ $("phoneImage").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=()=>{pendingIcon=reader.result;$("bigIcon").innerHTML=`<img src="${pendingIcon}">`};
+  reader.readAsDataURL(f);
+ };
+ $("modalSave").onclick=()=>{
+  const obj={
+   id:x?.id||uid(),name:$("phoneName").value.trim(),
+   description:$("phoneDescription").value,
+   password:$("phonePassword").value,
+   url:$("phoneUrl").value.trim(),
+   category:$("phoneCategory").value,
+   browser:$("phoneBrowser").value,
+   icon:$("phoneEmoji").value||"📱",iconUrl:pendingIcon
+  };
+  if(!obj.name)return notify("请填写名称");
+  if(!obj.url)return notify("请填写网址");
+  if(editingId)db.phone=db.phone.map(a=>a.id===editingId?obj:a);
+  else db.phone.push(obj);
+  if(save()){closeModal();renderPhoneList();notify("已保存")}
+ };
+}
+function editRecord(x){
+ editingId=x?.id||null;
+ const isFile=["world","preset","beauty"].includes(current);
+ let html=`<div class="field"><label>名称</label><input name="name" value="${esc(x?.name||"")}" placeholder="请输入名称"></div>`;
+ if(current==="api"){
+  html+=`
+   <div class="field"><label>地址</label><input name="address" value="${esc(x?.address||"")}"></div>
+   <div class="field"><label>密码</label><input name="password" type="password" value="${esc(x?.password||"")}"></div>
+   <div class="field"><label>URL</label><input name="url" value="${esc(x?.url||"")}"></div>
+   <div class="field"><label>密钥</label><input name="key" type="password" value="${esc(x?.key||"")}"></div>
+  `;
+ }
+ if(isFile){
+  html+=`<div class="field"><label>分类</label><select name="category">${categories().filter(c=>c!=="全部").map(c=>`<option ${c===(x?.category||"默认分类")?"selected":""}>${esc(c)}</option>`).join("")}</select></div>`;
+ }
+ if(current==="persona")html+=`<div class="field"><label>简介</label><textarea name="description">${esc(x?.description||"")}</textarea></div>`;
+ html+=`<div class="field"><label>内容</label><textarea name="content" placeholder="在这里填写或粘贴内容……">${esc(x?.content||"")}</textarea></div>`;
+ openModal(x?"编辑资料":"新增资料",html);
+ $("modalSave").onclick=()=>{
+  const obj={};
+  $("modalBody").querySelectorAll("[name]").forEach(el=>obj[el.name]=el.value);
+  if(!obj.name?.trim())return notify("请填写名称");
+  obj.id=x?.id||uid();
+  if(editingId)db[current]=db[current].map(a=>a.id===editingId?{...a,...obj}:a);
+  else db[current].push(obj);
+  if(save()){closeModal();renderModule();notify("已保存")}
+ };
+}
+function recordAction(action,id){
+ const x=db[current].find(a=>a.id===id);if(!x)return;
+ if(action==="edit")return editRecord(x);
+ if(action==="view"){
+  let details="";
+  Object.entries(x).forEach(([k,v])=>{
+   if(["id","iconUrl"].includes(k)||!v)return;
+   details+=`<div class="field"><label>${esc(k)}</label><pre>${esc(v)}</pre></div>`;
+  });
+  openModal(x.name,details||"暂无内容");
+  $("modalSave").classList.add("hidden");
+  return;
+ }
+ if(action==="copy"){
+  db[current].push({...x,id:uid(),name:x.name+"（副本）"});
+  save();renderModule();notify("已复制");return;
+ }
+ if(action==="download"){
+  downloadFile((x.name||"资料")+".txt",x.content||JSON.stringify(x,null,2));
+  return;
+ }
+ if(action==="delete"&&confirm("确定删除这条资料吗？")){
+  db[current]=db[current].filter(a=>a.id!==id);
+  save();renderModule();notify("已删除");
+ }
+}
+function importFiles(){
+ const input=document.createElement("input");
+ input.type="file";input.multiple=true;
+ input.onchange=async()=>{
+  for(const file of input.files){
+   const text=await file.text();
+   db[current].push({
+    id:uid(),name:file.name,category:"默认分类",
+    content:text,originalFileName:file.name
+   });
+  }
+  if(save()){renderModule();notify("导入完成")}
+ };
+ input.click();
+}
+function openModal(title,html){
+ $("modalTitle").textContent=title;
+ $("modalBody").innerHTML=html;
+ $("modal").classList.remove("hidden");
+ $("modalSave").classList.remove("hidden");
+ $("modalCancel").textContent="取消";
+}
+function closeModal(){
+ $("modal").classList.add("hidden");
+ $("modalSave").classList.remove("hidden");
+ $("modalCancel").textContent="取消";
+}
+$("modalCancel").onclick=closeModal;
+$("goHome").onclick=showHome;
+$("globalSearch").oninput=e=>{
+ const q=e.target.value.trim().toLowerCase();
+ if(!q){$("searchResults").innerHTML="";return}
+ const found=[];
+ MODULES.forEach(m=>db[m.id].forEach(x=>{
+  if(JSON.stringify(x).toLowerCase().includes(q))found.push({module:m,record:x});
+ }));
+ $("searchResults").innerHTML=`
+ <div class="panel"><h2>搜索结果</h2>
+ ${found.length?found.map(r=>`
+ <div class="entry" style="margin:8px 0">
+  <strong>${esc(r.record.name||"未命名")}</strong>
+  <div class="entry-meta">${r.module.name}</div>
+  <button class="soft" style="margin-top:8px" data-result="${r.module.id}">进入模块</button>
+ </div>`).join(""):'<div class="empty">没有找到相关内容</div>'}
+ </div>`;
+ document.querySelectorAll("[data-result]").forEach(b=>b.onclick=()=>openModule(b.dataset.result));
+};
+document.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{
+ const id=b.dataset.nav;
+ if(id==="home")showHome();
+ else if(id==="more"){
+  $("homePage").classList.remove("hidden");
+  $("modulePage").classList.add("hidden");
+  setNav("more");
+  $("homeTiles").innerHTML=MODULES.filter(m=>!["phone","world","preset"].includes(m.id)).map(m=>`
+   <button class="tile" data-open="${m.id}"><div class="ico">${m.icon}</div><strong>${m.name}</strong><small>${m.desc}</small></button>`).join("");
+  document.querySelectorAll("[data-open]").forEach(x=>x.onclick=()=>openModule(x.dataset.open));
+ }else openModule(id);
+});
+load();
+renderHome();
+</script>
+</body>
+</html>
