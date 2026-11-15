@@ -1,0 +1,17 @@
+{
+  "name": "HappyHome",
+  "short_name": "HappyHome",
+  "description": "我的专属温馨小窝",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFFDF7",
+  "theme_color": "#FFD97D",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
