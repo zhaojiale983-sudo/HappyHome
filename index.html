@@ -241,8 +241,8 @@
             <div class="modal-header"><span>🔌 添加 API 站子</span><button class="close-btn" onclick="closeModal('apiModal')">✕</button></div>
             <div class="form-group"><label>名称</label><input type="text" id="aName" placeholder="例如：中转站A"></div>
             <div class="form-group"><label>地址链接（网页后台）</label><input type="url" id="aUrl" placeholder="https://..."></div>
-            <div class="form-group"><label>自定义图标链接（可选，留空自动抓取）</label><input type="url" id="aIcon" placeholder="https://...png"></div>
-            <div class="form-group"><label>登录密码（可选）</label><input type="text" id="aPwd" placeholder="账号/密码备注"></div>
+            <div class="form-group"><label>登录邮箱（可选）</label><input type="email" id="aEmail" placeholder="用于登录站子的邮箱"></div>
+            <div class="form-group"><label>登录密码（可选）</label><input type="text" id="aPwd" placeholder="登录密码"></div>
             <div class="form-group"><label>接口 Base URL（可选）</label><input type="text" id="aBaseUrl" placeholder="https://api.xxx.com/v1"></div>
             <div class="form-group"><label>密钥 API Key（可选）</label><input type="text" id="aKey" placeholder="sk-..."></div>
             <button class="btn-primary" onclick="saveApi()">保存 API 站子</button>
@@ -323,7 +323,6 @@
                 <label>文件内容</label>
                 <textarea id="themeEditContent" spellcheck="false"></textarea>
             </div>
-
             <div id="themePreviewArea" class="asset-preview"></div>
 
             <div id="fontSampleArea" class="hidden">
@@ -347,7 +346,7 @@ abcdefghijklmnopqrstuvwxyz
     </div>
 
 <script>
-  /* 全屏入口 */
+/* 全屏入口 */
         async function enterApp() {
             document.getElementById('coverPage').classList.add('hidden');
 
@@ -404,7 +403,7 @@ abcdefghijklmnopqrstuvwxyz
         function escapeHTML(value) {
             return String(value ?? '').replace(/[&<>"']/g, ch => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;',
-                '"': '&quot;', "'": '&#39;'
+                '"': '"', "'": '&#39;'
             }[ch]));
         }
 
@@ -642,14 +641,7 @@ abcdefghijklmnopqrstuvwxyz
             if (type === 'author') selectedAuthor = val;
             if (type === 'func') selectedFunc = val;
             renderMain();
-        }
-
-        /* 小手机 */
-        function savePhone() {
-            const name = document.getElementById('pName').value.trim();
-            let url = document.getElementById('pUrl').value.trim();
-            const icon = document.getElementById('pIcon').value.trim();
-            const pwd = document.getElementById('pPwd').value.trim();
+        }const pwd = document.getElementById('pPwd').value.trim();
 
             if (!name || !url) return alert('请填写名称和链接哦~');
             if (!url.startsWith('http')) url = 'https://' + url;
@@ -665,7 +657,7 @@ abcdefghijklmnopqrstuvwxyz
         function saveApi() {
             const name = document.getElementById('aName').value.trim();
             let url = document.getElementById('aUrl').value.trim();
-            const icon = document.getElementById('aIcon').value.trim();
+            const email = document.getElementById('aEmail').value.trim();
             const pwd = document.getElementById('aPwd').value.trim();
             const baseUrl = document.getElementById('aBaseUrl').value.trim();
             const key = document.getElementById('aKey').value.trim();
@@ -673,10 +665,10 @@ abcdefghijklmnopqrstuvwxyz
             if (!name || !url) return alert('请填写名称和地址链接哦~');
             if (!url.startsWith('http')) url = 'https://' + url;
 
-            db.apis.push({ id: Date.now(), name, url, icon, pwd, baseUrl, key });
+            db.apis.push({ id: Date.now(), name, url, email, pwd, baseUrl, key });
             saveDB();
             closeModal('apiModal');
-            ['aName', 'aUrl', 'aIcon', 'aPwd', 'aBaseUrl', 'aKey'].forEach(id => document.getElementById(id).value = '');
+            ['aName', 'aUrl', 'aEmail', 'aPwd', 'aBaseUrl', 'aKey'].forEach(id => document.getElementById(id).value = '');
             renderMain();
         }
 
@@ -703,12 +695,14 @@ abcdefghijklmnopqrstuvwxyz
 
             document.getElementById('launchTitle').innerText = item.name;
 
-            let detailsHtml = `<div>🔗 链接：${escapeHTML(item.url)}</div>`;
-            if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
-
+            let detailsHtml = `<div>🔗 链接：${escapeHTML(item.url)}${type === 'api' ? ` <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.url)})">复制</button>` : ''}</div>`;
             if (type === 'api') {
-                if (item.baseUrl) detailsHtml += `<div>🌐 URL：${escapeHTML(item.baseUrl)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.baseUrl)})">复制</button></div>`;
-                if (item.key) detailsHtml += `<div>🗝️ 密钥：${escapeHTML(item.key)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.key)})">复制</button></div>`;
+                if (item.email) detailsHtml += `<div>📧 登录邮箱：${escapeHTML(item.email)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.email)})">复制</button></div>`;
+                if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
+                if (item.baseUrl) detailsHtml += `<div>🌐 Base URL：${escapeHTML(item.baseUrl)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.baseUrl)})">复制</button></div>`;
+                if (item.key) detailsHtml += `<div>🗝️ API Key：${escapeHTML(item.key)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.key)})">复制</button></div>`;
+            } else if (item.pwd) {
+                detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
             }
 
             document.getElementById('launchDetails').innerHTML = detailsHtml;
@@ -752,7 +746,8 @@ abcdefghijklmnopqrstuvwxyz
                 alert('当前浏览器不支持自动复制，请手动复制。');
             }
         }
-  /* 世界书导入 */
+
+        /* 世界书导入 */
         function openImportModal() {
             const cats = db.categories.worldbook;
             document.getElementById('impAuthor').innerHTML =
@@ -1068,7 +1063,7 @@ abcdefghijklmnopqrstuvwxyz
                 alert('导入失败：' + e.message);
             }
         }
-  /* 美化/字体预览 */
+/* 美化/字体预览 */
         async function openThemePreview(id) {
             const asset = db.themeAssets.find(x => x.id === id);
             if (!asset) return;
@@ -1099,7 +1094,7 @@ abcdefghijklmnopqrstuvwxyz
                 if (asset.kind === 'font') {
                     const stored = await themeDBAction('get', id);
                     if (!stored || !stored.blob) throw new Error('字体文件不存在，请重新导入。');
-                    currentFontObjectURL = URL.createObjectURL(stored.blob);
+currentFontObjectURL = URL.createObjectURL(stored.blob);
                     const fontFamily = `HappyHomeFont_${String(id).replace(/[^a-zA-Z0-9]/g, '')}`;
 
                     currentFontFace = new FontFace(fontFamily, `url("${currentFontObjectURL}")`);
@@ -1148,7 +1143,7 @@ ${safeCSS}
                     const frame = document.createElement('iframe');
                     frame.setAttribute('sandbox', '');
                     frame.title = 'HTML 文件预览';
-                    frame.srcdoc = asset.content;
+frame.srcdoc = asset.content;
                     document.getElementById('themePreviewArea').appendChild(frame);
 
                     document.getElementById('themePreviewHint').innerText =
@@ -1296,3 +1291,10 @@ ${safeCSS}
 </script>
 </body>
 </html>
+
+        /* 小手机 */
+        function savePhone() {
+            const name = document.getElementById('pName').value.trim();
+            let url = document.getElementById('pUrl').value.trim();
+            const icon = document.getElementById('pIcon').value.trim();
+            
