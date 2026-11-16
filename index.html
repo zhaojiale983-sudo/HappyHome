@@ -1726,9 +1726,9 @@
 .hh-sheet-btn{margin:3px 0;padding:7px 10px;font-size:.78rem;border-radius:10px;font-weight:600;line-height:1.35}
 .hh-sheet-btn.cancel{margin-top:6px;padding-left:10px;font-size:.74rem}
 ` }));
-    /* ===== 补丁：关掉底部那条"退出全屏"系统提示 ===== */
-        // 原生全屏会弹系统提示，这里停用；页面本身仍是铺满布局
+    /* ===== 补丁：不再触发系统全屏（那条"轻触返回"提示不会出现） ===== */
         goFullscreen = function () { };
+        hhFsPending = false;
     /* ===== 补丁：搜索栏全局搜索（跨分类，命中关键词即显示） ===== */
         document.head.appendChild(Object.assign(document.createElement('style'), { textContent: `
 .hh-search-title{margin:10px 2px 6px;font-size:.8rem;font-weight:bold;color:var(--accent-caramel)}
