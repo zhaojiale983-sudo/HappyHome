@@ -1805,6 +1805,61 @@
                 }
             });
         };
+    /* ===== 补丁：API站子iframe一键复制登录凭证（受浏览器限制无法自动填表单） ===== */
+const _openInFrameOrig = openInFrame;
+openInFrame = function(url, item){
+    let m = document.getElementById('fsFrame');
+    if (!m) {
+        m = document.createElement('div');
+        m.id = 'fsFrame'; m.className = 'modal-overlay';
+        m.style.cssText = 'padding:0;background:#000;z-index:250;';
+        m.innerHTML = '<div id="fsFrameBox" style="position:absolute;inset:0"></div>' +
+            '<div style="position:absolute;z-index:2;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+            '<button id="fsCredBtn" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(255,217,125,.85);color:#222;font-size:.72rem">📋复制登录信息</button>' +
+            '<button id="fsOut" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff">↗</button>' +
+            '<button id="fsClose" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff">✕</button></div>';
+        document.body.appendChild(m);
+        m.querySelector('#fsClose').onclick = () => closeModal('fsFrame');
+    }
+    m.querySelector('#fsOut').onclick = () => window.open(url, '_blank');
+    document.getElementById('fsFrameBox').innerHTML = `<iframe src="${escapeHTML(url)}" style="width:100%;height:100%;border:0;background:#fff" allow="fullscreen; autoplay; camera; microphone; clipboard-read; clipboard-write" allowfullscreen></iframe>`;
+
+    // 绑定复制账号密码按钮
+    const credBtn = document.getElementById('fsCredBtn');
+    if(item && item.email){
+        credBtn.style.display='block';
+        credBtn.onclick = function(){
+            const txt = [];
+            if(item.email) txt.push(`邮箱：${item.email}`);
+            if(item.pwd) txt.push(`密码：${item.pwd}`);
+            if(item.key) txt.push(`Key：${item.key}`);
+            const str = txt.join('\n');
+            copyText(str);
+            toast('已复制登录信息，请粘贴到网站登录框！');
+        }
+    }else{
+        credBtn.style.display='none';
+    }
+
+    closeModal('launchModal'); openModal('fsFrame');
+    if(typeof goFullscreen === 'function') goFullscreen();
+};
+
+// 修改openLaunchModal调用，把完整item对象传给openInFrame
+const _olm4 = openLaunchModal;
+openLaunchModal = function (type, id) {
+    _olm4(type,id);
+    const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
+    if(!item) return;
+    // 替换原有内嵌全屏按钮点击事件，附带item
+    const btns = document.getElementById('browserButtons').querySelectorAll('.browser-btn');
+    for(const b of btns){
+        if(b.textContent.includes('全屏打开（内嵌）')){
+            b.onclick = () => openInFrame(item.url, item);
+            break;
+        }
+    }
+};
         renderMain();
     </script>
 </body>
