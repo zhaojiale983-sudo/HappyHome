@@ -1729,6 +1729,82 @@
     /* ===== 补丁：关掉底部那条"退出全屏"系统提示 ===== */
         // 原生全屏会弹系统提示，这里停用；页面本身仍是铺满布局
         goFullscreen = function () { };
+    /* ===== 补丁：搜索栏全局搜索（跨分类，命中关键词即显示） ===== */
+        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: `
+.hh-search-title{margin:10px 2px 6px;font-size:.8rem;font-weight:bold;color:var(--accent-caramel)}
+.hh-search-bar{display:flex;justify-content:space-between;align-items:center;background:var(--card-cream);border:1px dashed var(--border-soft);border-radius:12px;padding:8px 10px;font-size:.78rem;color:var(--text-light);margin-bottom:8px}
+` }));
+
+        const _renderMain0 = renderMain;
+        renderMain = function () {
+            const kwEl = document.getElementById('searchInput');
+            const raw = (kwEl.value || '').trim();
+            if (!raw) return _renderMain0();
+
+            const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+            const hit = (...vals) => {
+                const s = vals.filter(v => v !== undefined && v !== null).join(' ').toLowerCase();
+                return terms.every(t => s.includes(t));
+            };
+
+            const box = document.getElementById('mainContent');
+            box.innerHTML = '';
+            const groups = [];
+
+            const phones = (db.phones || []).filter(p => hit(p.name, p.url, p.icon, p.pwd, p.entry, p.type === 'paid' ? '付费' : '免费'));
+            if (phones.length) groups.push({ key: 'phone', title: '📱 小手机', items: phones });
+
+            const apis = (db.apis || []).filter(a => hit(a.name, a.url, a.email, a.pwd, a.baseUrl, a.key, a.cat));
+            if (apis.length) groups.push({ key: 'api', title: '🔌 API 站子', items: apis });
+
+            const wb = (db.files || []).filter(f => f.section === 'worldbook' && hit(f.name, f.content, f.author, f.func));
+            if (wb.length) groups.push({ key: 'worldbook', title: '📖 世界书', items: wb });
+
+            const ch = (db.files || []).filter(f => f.section === 'character' && hit(f.name, f.content, f.author, f.func));
+            if (ch.length) groups.push({ key: 'character', title: '👤 人设', items: ch });
+
+            const th = (db.themeAssets || []).filter(a => hit(a.name, a.author, a.func, a.kind, a.content));
+            if (th.length) groups.push({ key: 'theme', title: '🎨 美化 · 字体', items: th });
+
+            if (!groups.length) {
+                box.appendChild(el('div', 'hint-text', '没有找到「' + raw + '」相关的内容，换个关键词试试～'));
+                return;
+            }
+
+            const total = groups.reduce((n, g) => n + g.items.length, 0);
+            const bar = el('div', 'hh-search-bar');
+            bar.innerHTML = '<span>🔍 「' + escapeHTML(raw) + '」共找到 ' + total + ' 项</span><span style="color:var(--accent-caramel);font-weight:bold">全部分类</span>';
+            box.appendChild(bar);
+
+            groups.forEach(g => {
+                box.appendChild(el('div', 'hh-search-title', g.title + '（' + g.items.length + '）'));
+                if (g.key === 'phone' || g.key === 'api') {
+                    const grid = el('div', 'grid-container');
+                    g.items.forEach(it => {
+                        const card = el('div', 'square-card');
+                        card.innerHTML = `<div class="square-icon">${resolveIcon(it, g.key === 'phone' ? '📱' : '🔌')}</div><div class="square-title">${escapeHTML(it.name)}</div>`;
+                        const open = () => openLaunchModal(g.key, it.id);
+                        card.addEventListener('click', open);
+                        if (typeof openCardMenu === 'function') bindLongPress(card, () => openCardMenu(g.key, it.id), open);
+                        grid.appendChild(card);
+                    });
+                    box.appendChild(grid);
+                } else {
+                    const list = el('div', 'list-container');
+                    g.items.forEach(it => {
+                        const card = el('div', 'file-card');
+                        const icon = g.key === 'character' ? '👤' : g.key === 'worldbook' ? '📄' : (it.kind === 'font' ? '🔤' : it.kind === 'css' ? '🎨' : '🌐');
+                        card.innerHTML = `<div class="file-info"><div style="overflow:hidden"><div class="file-name">${icon} ${escapeHTML(it.name)}</div><div class="file-tags"><span class="file-tag">✍️ ${escapeHTML(it.author || '')}</span><span class="file-tag">🏷️ ${escapeHTML(it.func || '')}</span></div></div></div><span style="color:var(--accent-caramel);font-size:0.8rem;">打开 ›</span>`;
+                        card.addEventListener('click', () => {
+                            if (g.key === 'worldbook' || g.key === 'character') openEditFile(it.id);
+                            else openThemePreview(it.id);
+                        });
+                        list.appendChild(card);
+                    });
+                    box.appendChild(list);
+                }
+            });
+        };
         renderMain();
     </script>
 </body>
