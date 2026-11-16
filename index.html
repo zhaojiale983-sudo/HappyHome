@@ -1428,91 +1428,21 @@
             const box = document.getElementById('browserButtons');
             box.insertBefore(b, box.firstChild);
         };
-    /* ===== 补丁：整体更顺滑、更好看（参考「小心机」的首页风格） ===== */
-        (function () {
-            const css = `
-html{scroll-behavior:smooth}
-.tab-btn,.cat-chip,.square-card,.file-card,.btn-primary,.browser-btn,.phone-type-btn{transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .2s,background .2s,border-color .2s}
-.square-card{box-shadow:0 6px 16px rgba(92,75,59,.07)}
-.square-card:active,.file-card:active,.btn-primary:active,.browser-btn:active{transform:scale(.96)}
-.file-card{content-visibility:auto;contain-intrinsic-size:auto 60px}
-.tab-btn.active{background:linear-gradient(135deg,var(--accent-yellow),#ffc46b);box-shadow:0 4px 12px rgba(244,162,97,.35)}
-.search-box input:focus,.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent-caramel);box-shadow:0 0 0 3px rgba(244,162,97,.18);outline:none}
-.hh-fade{animation:hhIn .28s ease both}
-@keyframes hhIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.modal-overlay{display:flex!important;visibility:hidden;opacity:0;transition:opacity .22s,visibility .22s}
-.modal-overlay.show{visibility:visible;opacity:1}
-.modal-box{transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.2,.9,.3,1.05)}
-.modal-overlay.show .modal-box{transform:none}
-@media(max-width:600px){.modal-overlay{align-items:flex-end;padding:0}.modal-box{max-width:none;border-radius:24px 24px 0 0;max-height:88vh;padding-bottom:calc(16px + env(safe-area-inset-bottom));transform:translateY(100%)}.modal-overlay.show .modal-box{transform:none}}
-header{position:relative}
-.hh-night{position:absolute;right:2px;top:6px;border:1px solid var(--border-soft);background:var(--card-cream);border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer}
-.hh-hero{background:linear-gradient(135deg,#FFE9A8,#FFCAD4);border-radius:22px;padding:14px 16px;margin-bottom:12px;box-shadow:0 8px 22px rgba(244,162,97,.22);color:#4A3828}
-.hh-meta{display:flex;justify-content:space-between;font-size:.72rem;opacity:.75;letter-spacing:.04em}
-.hh-hero h2{margin:2px 0;font-size:2.3rem;font-weight:800;letter-spacing:.02em}
-#hhNote{margin:0 0 8px;font-size:.85rem;min-height:1.2em;outline:none;user-select:text;-webkit-user-select:text}
-#hhNote:empty::before{content:attr(data-ph);opacity:.5}
-.hh-stats{display:flex;gap:6px;flex-wrap:wrap}
-.hh-stats span{background:rgba(255,255,255,.55);border-radius:10px;padding:2px 8px;font-size:.72rem;font-weight:700}
-#coverPage{background:radial-gradient(circle at 20% 15%,#FFE9A8 0,transparent 45%),radial-gradient(circle at 85% 80%,#FFCAD4 0,transparent 50%),var(--bg-cream);background-size:140% 140%;animation:hhAur 10s ease-in-out infinite alternate}
-@keyframes hhAur{to{background-position:100% 100%}}
-.cover-btn:active{transform:scale(.95)}
-html.night{--bg-cream:#1b1d21;--card-cream:#26292e;--accent-yellow:#d9ae55;--accent-pink:#5b3a45;--text-brown:#ece6dc;--text-light:#9a958c;--border-soft:#363a41}
-html.night .square-card,html.night .file-card,html.night .tab-btn:not(.active),html.night .cat-chip:not(.active),html.night .phone-type-btn:not(.active),html.night .search-box input,html.night .form-group input,html.night .form-group select,html.night .form-group textarea,html.night .browser-btn,html.night .phone-icon-picker,html.night .asset-preview,html.night .font-preview,html.night .batch-btn-sel{background:#2a2d33!important;color:var(--text-brown)!important}
-html.night .selected{background:#4a4126!important}
-html.night .hh-hero{background:linear-gradient(135deg,#4a3d22,#4a2f39);color:#ece6dc}
-html.night .hh-stats span{background:rgba(255,255,255,.12)}
-html.night #coverPage{background:#1b1d21;animation:none}
-`;
-            document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
-
-            // 首页卡片：时间 + 一句话状态 + 数量统计
-            const hero = document.createElement('section');
-            hero.id = 'hhHero'; hero.className = 'hh-hero';
-            hero.innerHTML = '<div class="hh-meta"><span id="hhDate"></span><span id="hhGreet"></span></div><h2 id="hhTime">00:00</h2><p id="hhNote" contenteditable="true" spellcheck="false" data-ph="写一句今天的状态"></p><div class="hh-stats" id="hhStats"></div>';
-            document.querySelector('.search-box').before(hero);
-            const note = document.getElementById('hhNote');
-            note.textContent = db.note === undefined ? '天天开心，万事顺意。' : db.note;
-            let nt; note.addEventListener('input', () => { clearTimeout(nt); nt = setTimeout(() => { db.note = note.textContent; saveDB(); }, 400); });
-            function tick() {
-                const d = new Date(), p = n => String(n).padStart(2, '0'), h = d.getHours();
-                document.getElementById('hhTime').textContent = p(h) + ':' + p(d.getMinutes());
-                document.getElementById('hhDate').textContent = `${d.getMonth() + 1}月${d.getDate()}日 周${'日一二三四五六'[d.getDay()]}`;
-                document.getElementById('hhGreet').textContent = h < 6 ? '夜深了' : h < 11 ? '早上好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
-            }
-            tick(); setInterval(tick, 20000);
-            function stats() {
-                const n = s => db.files.filter(f => f.section === s).length, t = s => db.themeAssets.filter(a => a.section === s).length;
-                document.getElementById('hhStats').innerHTML = [['📱', db.phones.length], ['🔌', db.apis.length], ['📖', n('worldbook')], ['👤', n('character')], ['🎀', t('theme')], ['🔤', t('font')]].map(([i, c]) => `<span>${i} ${c}</span>`).join('');
-            }
-            const _rm3 = renderMain;
-            renderMain = function () { _rm3(); stats(); hero.style.display = currentTab === 'phone' ? '' : 'none'; };
-
-            // 切换标签：淡入 + 自动滚到当前标签
-            const _st3 = switchTab;
-            switchTab = function (tab, btn) {
-                _st3(tab, btn);
-                const c = document.getElementById('mainContent');
-                c.classList.remove('hh-fade'); void c.offsetWidth; c.classList.add('hh-fade');
-                if (btn && btn.scrollIntoView) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-            };
-
-            // 夜间模式
-            const nb = document.createElement('button');
-            nb.className = 'hh-night'; document.querySelector('header').appendChild(nb);
-            let night = false; try { night = localStorage.getItem('hh_night') === '1'; } catch (e) {}
-            function applyNight() {
-                document.documentElement.classList.toggle('night', night);
-                nb.textContent = night ? '☀️' : '🌙';
-                const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = night ? '#1b1d21' : '#FFFDF7';
-            }
-            applyNight();
-            nb.onclick = () => { night = !night; try { localStorage.setItem('hh_night', night ? '1' : '0'); } catch (e) {} applyNight(); };
-
-            // 提示改成轻提示（不再弹框打断）
-            const _alert = window.alert.bind(window);
-            window.alert = m => (typeof toast === 'function' ? toast(String(m)) : _alert(m));
-        })();
+     /* ===== 补丁：恢复自动全屏 + 隐藏状态语卡片 ===== */
+        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '#hhHero{display:none!important}' }));
+        let hhFsPending = false;
+        goFullscreen = function () {
+            if (/; wv\)/.test(navigator.userAgent)) return; // APK 里由外壳负责全屏
+            if (document.fullscreenElement || document.webkitFullscreenElement) return;
+            const d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
+            if (!f) return;
+            try { const p = f.call(d, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+        };
+        // 点"点击进入"时自动全屏
+        enterApp = async function () { document.getElementById('coverPage').classList.add('hidden'); goFullscreen(); };
+        // 切走再回来时，下一次点击自动恢复全屏（你自己手动退出全屏时不会强拉回去）
+        document.addEventListener('visibilitychange', () => { if (document.hidden) hhFsPending = true; });
+        ['click', 'touchend'].forEach(t => document.addEventListener(t, () => { if (hhFsPending) { hhFsPending = false; goFullscreen(); } }, { passive: true }));
         renderMain();
     </script>
 </body>
