@@ -73,7 +73,7 @@
             font-weight: 600; font-size: 0.82rem; cursor: pointer;
         }
         .tab-btn.active { background: var(--accent-yellow); border-color: var(--accent-caramel); color: #4A3828; }
-.sub-category-bar {
+        .sub-category-bar {
             display: flex; flex-direction: column; gap: 6px; background: var(--card-cream);
             padding: 10px; border-radius: 14px; border: 1.5px dashed var(--accent-caramel); margin-bottom: 12px;
         }
@@ -121,7 +121,7 @@
         .file-name { font-weight: bold; font-size: 0.88rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .file-tags { display: flex; gap: 4px; font-size: 0.7rem; color: var(--text-light); flex-wrap: wrap; }
         .file-tag { background: var(--card-cream); padding: 1px 6px; border-radius: 6px; }
-.batch-toolbar {
+        .batch-toolbar {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--card-cream); padding: 8px 12px; border-radius: 12px;
             margin-bottom: 10px; border: 1px solid var(--border-soft); font-size: 0.82rem;
@@ -183,17 +183,6 @@
         .phone-type-btn.active { background:var(--accent-yellow); border-color:var(--accent-caramel); }
         .backup-panel { background:var(--card-cream); border:1.2px dashed var(--accent-caramel); border-radius:14px; padding:14px; margin-bottom:12px; }
         .backup-panel p { font-size:0.78rem; line-height:1.5; color:var(--text-light); }
-                /* ===== 新增：多选/长按/分类交互样式 ===== */
-        * { -webkit-touch-callout: none; }
-        .square-card.selected { outline: 2.5px solid var(--accent-caramel); background: #FFF3CD; }
-        .sel-mark { display: none; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-caramel); color: #fff; font-size: 0.65rem; align-items: center; justify-content: center; }
-        .square-card.selected .sel-mark { display: flex; }
-        .file-check { font-size: 1.15rem; color: var(--accent-caramel); flex-shrink: 0; }
-        .batch-toolbar { position: sticky; top: 0; z-index: 20; flex-wrap: wrap; gap: 6px; }
-        .batch-btns { display: flex; gap: 5px; flex-wrap: wrap; }
-        .cat-chip { padding: 5px 10px; font-size: 0.78rem; }
-        .cat-add-btn { padding: 4px 10px; }
-        
         .hidden { display: none !important; }
         html, body { overscroll-behavior-x: none; }
         body { touch-action: pan-y; }
@@ -360,7 +349,7 @@
             <button class="btn-primary btn-danger" onclick="deleteThemeAsset()">删除</button>
         </div>
     </div>
-<script>
+    <script>
         async function enterApp() {
             document.getElementById('coverPage').classList.add('hidden');
             try {
@@ -433,87 +422,63 @@
             } catch (e) { return fallbackEmoji; }
         }
 
-        function el(tag, cls, html) {
-            const e = document.createElement(tag);
-            if (cls) e.className = cls;
-            if (html !== undefined) e.innerHTML = html;
-            return e;
-        }
-        function rerender() { const y = window.scrollY; renderMain(); window.scrollTo(0, y); }
-        function exitBatch() { isBatchMode = false; selectedIds.clear(); }
-
-        function countBy(section, key, val) {
-            const isFile = section === 'worldbook' || section === 'character';
-            const srcList = isFile ? db.files : db.themeAssets;
-            return srcList.filter(x => x.section === section && (val === '全部' || x[key] === val)).length;
-        }
-
-        // 分类栏：用 addEventListener，彻底解决点不动的问题
         function renderCategoryBar(section) {
             const cats = db.categories[section] || { authors: [], funcs: [] };
-            const bar = el('div', 'sub-category-bar');
-            [['author', '按作者：', cats.authors || [], 'authors'], ['func', '按功能：', cats.funcs || [], 'funcs']].forEach(([type, label, arr, listKey]) => {
-                const row = el('div', 'cat-row');
-                row.appendChild(el('span', 'cat-label', label));
-                const cur = type === 'author' ? selectedAuthor : selectedFunc;
-                ['全部', ...arr].forEach(name => {
-                    const chip = el('span', 'cat-chip' + (cur === name ? ' active' : ''));
-                    chip.textContent = `${name} (${countBy(section, type, name)})`;
-                    chip.addEventListener('click', () => setFilter(type, name));
-                    row.appendChild(chip);
-                });
-                const add = el('button', 'cat-add-btn', '＋');
-                add.addEventListener('click', () => addCategory(listKey));
-                row.appendChild(add);
-                bar.appendChild(row);
+            let html = `<div class="sub-category-bar">`;
+            html += `<div class="cat-row"><span class="cat-label">按作者：</span>`;
+            ['全部', ...(cats.authors || [])].forEach(au => {
+                html += `<span class="cat-chip ${selectedAuthor === au ? 'active' : ''}" onclick="setFilter('author', ${JSON.stringify(au)})">${escapeHTML(au)}</span>`;
             });
-            return bar;
-        }
-
-        function setFilter(type, val) {
-            if (type === 'author') selectedAuthor = val; else selectedFunc = val;
-            exitBatch(); renderMain();
-        }
-        function addCategory(type) {
-            const val = prompt(`请输入${type === 'authors' ? '新作者名称' : '新功能分类名称'}：`);
-            if (val && val.trim()) {
-                const list = db.categories[currentTab][type];
-                if (!list.includes(val.trim())) { list.push(val.trim()); saveDB(); renderMain(); }
-            }
-        }
-        function setPhoneType(type) { selectedPhoneType = type; exitBatch(); renderMain(); }
-
-        // 当前页面可见的项目（全选就选这些）
-        function getVisible(kw) {
-            const hit = s => (s || '').toLowerCase().includes(kw);
-            if (currentTab === 'phone') return db.phones.filter(p => (p.type || 'free') === selectedPhoneType && (hit(p.name) || hit(p.url)));
-            if (currentTab === 'api') return db.apis.filter(a => hit(a.name) || hit(a.url));
-            const catOk = x => x.section === currentTab && (selectedAuthor === '全部' || x.author === selectedAuthor) && (selectedFunc === '全部' || x.func === selectedFunc);
-            if (currentTab === 'worldbook' || currentTab === 'character') return db.files.filter(f => catOk(f) && (!kw || hit(f.name) || hit(f.content)));
-            return db.themeAssets.filter(a => catOk(a) && (!kw || hit(a.name)));
-        }
-
-        function makeBatchBar(items) {
-            const bar = el('div', 'batch-toolbar');
-            const allSel = items.length > 0 && items.every(i => selectedIds.has(i.id));
-            bar.appendChild(el('span', '', `已选 ${selectedIds.size} 项`));
-            const box = el('div', 'batch-btns');
-            const add = (cls, txt, fn) => { const b = el('button', cls, txt); b.addEventListener('click', fn); box.appendChild(b); };
-            add('batch-btn-sel', allSel ? '取消全选' : '全选', () => {
-                items.forEach(i => allSel ? selectedIds.delete(i.id) : selectedIds.add(i.id));
-                rerender();
+            html += `<button class="cat-add-btn" onclick="addCategory('authors')">＋</button></div>`;
+            html += `<div class="cat-row"><span class="cat-label">按功能：</span>`;
+            ['全部', ...(cats.funcs || [])].forEach(fn => {
+                html += `<span class="cat-chip ${selectedFunc === fn ? 'active' : ''}" onclick="setFilter('func', ${JSON.stringify(fn)})">${escapeHTML(fn)}</span>`;
             });
-            if (currentTab !== 'api') add('batch-btn-move', '移动', batchMove);
-            add('batch-btn-del', '删除', batchDelete);
-            add('batch-btn-sel', '完成', () => { exitBatch(); rerender(); });
-            bar.appendChild(box);
-            return bar;
+            html += `<button class="cat-add-btn" onclick="addCategory('funcs')">＋</button></div></div>`;
+            return html;
         }
 
         function renderMain() {
             const container = document.getElementById('mainContent');
             const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
             container.innerHTML = '';
+
+            if (currentTab === 'phone') {
+                container.innerHTML = `
+                    <div class="phone-type-bar">
+                        <button class="phone-type-btn ${selectedPhoneType === 'free' ? 'active' : ''}" onclick="setPhoneType('free')">📱 免费小手机</button>
+                        <button class="phone-type-btn ${selectedPhoneType === 'paid' ? 'active' : ''}" onclick="setPhoneType('paid')">💎 付费小手机</button>
+                    </div>`;
+                const grid = document.createElement('div');
+                grid.className = 'grid-container';
+                grid.innerHTML = `<div class="square-card add-card" onclick="openModal('phoneModal')"><div class="plus">＋</div><span>添加</span></div>`;
+                db.phones.filter(p => (p.type || 'free') === selectedPhoneType && ((p.name || '').toLowerCase().includes(keyword) || (p.url || '').toLowerCase().includes(keyword))).forEach(p => {
+                    grid.innerHTML += `
+                        <div class="square-card" onclick="openLaunchModal('phone', ${Number(p.id)})">
+                            ${p.pwd ? '<span class="badge-pwd">🔑</span>' : ''}
+                            <div class="square-icon">${resolveIcon(p, '📱')}</div>
+                            <div class="square-title">${escapeHTML(p.name)}</div>
+                        </div>`;
+                });
+                container.appendChild(grid);
+                return;
+            }
+
+            if (currentTab === 'api') {
+                const grid = document.createElement('div');
+                grid.className = 'grid-container';
+                grid.innerHTML = `<div class="square-card add-card" onclick="openModal('apiModal')"><div class="plus">＋</div><span>添加</span></div>`;
+                db.apis.filter(a => (a.name || '').toLowerCase().includes(keyword) || (a.url || '').toLowerCase().includes(keyword)).forEach(a => {
+                    grid.innerHTML += `
+                        <div class="square-card" onclick="openLaunchModal('api', ${Number(a.id)})">
+                            ${a.key ? '<span class="badge-pwd">🗝️</span>' : ''}
+                            <div class="square-icon">${resolveIcon(a, '🔌')}</div>
+                            <div class="square-title">${escapeHTML(a.name)}</div>
+                        </div>`;
+                });
+                container.appendChild(grid);
+                return;
+            }
 
             if (currentTab === 'backup') {
                 container.innerHTML = `
@@ -523,116 +488,157 @@
                         <button class="btn-primary" onclick="exportBackup()">导出完整备份文件</button>
                         <div class="form-group" style="margin-top:10px"><label>导入备份文件（JSON）</label><input type="file" id="backupInput" accept=".json,application/json"></div>
                         <button class="btn-primary" onclick="importBackup()">导入并恢复备份</button>
-                        </div>`;
+                    </div>`;
                 return;
             }
-            if (currentTab === 'phone') {
-                container.innerHTML = `
-                    <div class="phone-type-bar">
-                        <button class="phone-type-btn ${selectedPhoneType === 'free' ? 'active' : ''}" onclick="setPhoneType('free')">📱 免费小手机</button>
-                        <button class="phone-type-btn ${selectedPhoneType === 'paid' ? 'active' : ''}" onclick="setPhoneType('paid')">💎 付费小手机</button>
+
+            container.innerHTML = renderCategoryBar(currentTab);
+            if (currentTab === 'worldbook' || currentTab === 'character') {
+                renderWorldbookList(container, keyword);
+            } else {
+                renderThemeList(container, keyword, currentTab);
+            }
+        }
+        function renderWorldbookList(container, keyword) {
+            const list = document.createElement('div');
+            list.className = 'list-container';
+            const isCharacter = currentTab === 'character';
+            const sectionName = isCharacter ? '人设' : '世界书';
+
+            let toolbarHTML = `
+                <div class="batch-toolbar">
+                    <div>
+                        <button class="batch-btn-sel" onclick="toggleBatchMode()">${isBatchMode ? '退出多选' : '📋 多选操作'}</button>
+                        ${isBatchMode ? `<span style="margin-left:6px">已选 ${selectedIds.size} 项</span>` : ''}
                     </div>`;
-            } else if (currentTab !== 'api') {
-                container.appendChild(renderCategoryBar(currentTab));
+            if (isBatchMode && selectedIds.size > 0) {
+                toolbarHTML += `
+                    <div>
+                        <button class="batch-btn-move" onclick="openBatchMoveModal()">移动分类</button>
+                        <button class="batch-btn-del" onclick="batchDeleteFiles()">批量删除</button>
+                    </div>`;
             }
-            const items = getVisible(keyword);
-            if (isBatchMode) container.appendChild(makeBatchBar(items));
-            if (currentTab === 'phone' || currentTab === 'api') renderGrid(container, items);
-            else renderList(container, items);
-        }
+            toolbarHTML += `</div>`;
 
-        function renderGrid(container, items) {
-            const isPhone = currentTab === 'phone';
-            const grid = el('div', 'grid-container');
-            if (!isBatchMode) {
-                const add = el('div', 'square-card add-card', '<div class="plus">＋</div><span>添加</span>');
-                add.addEventListener('click', () => openModal(isPhone ? 'phoneModal' : 'apiModal'));
-                grid.appendChild(add);
-            }
-            items.forEach(it => {
-                const card = el('div', 'square-card' + (selectedIds.has(it.id) ? ' selected' : ''));
-                const badge = isPhone ? (it.pwd ? '<span class="badge-pwd">🔑</span>' : '') : (it.key ? '<span class="badge-pwd">🗝️</span>' : '');
-                card.innerHTML = `${badge}<span class="sel-mark">✓</span><div class="square-icon">${resolveIcon(it, isPhone ? '📱' : '🔌')}</div><div class="square-title">${escapeHTML(it.name)}</div>`;
-                bindLongPress(card, () => startBatch(it.id), () => {
-                    if (isBatchMode) toggleSelectId(it.id); else openLaunchModal(isPhone ? 'phone' : 'api', it.id);
-                });
-                grid.appendChild(card);
+            list.innerHTML = toolbarHTML + `
+                <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
+                    <span style="font-size:1.1rem;margin-right:6px;">＋</span>
+                    <span>手写 / 导入${sectionName}</span>
+                </div>
+                <div class="hint-text">💡 长按文件卡片可单项移动分类或删除</div>`;
+
+            const filtered = db.files.filter(f => {
+                if (f.section !== currentTab) return false;
+                if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
+                if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
+                if (keyword && !(f.name || '').toLowerCase().includes(keyword) && !(f.content || '').toLowerCase().includes(keyword)) return false;
+                return true;
             });
-            container.appendChild(grid);
-        }
 
-        function renderList(container, items) {
-            const sec = currentTab;
-            const isFile = sec === 'worldbook' || sec === 'character';
-            const list = el('div', 'list-container');
-            if (!isBatchMode) {
-                const label = sec === 'character' ? '手写 / 导入人设' : sec === 'worldbook' ? '手写 / 导入世界书' : sec === 'font' ? '导入字体文件' : '导入美化文件';
-                const add = el('div', 'file-card add-card', `<span style="font-size:1.1rem;margin-right:6px;">＋</span><span>${label}</span>`);
-                add.style.cssText = 'justify-content:center;padding:12px;cursor:pointer;';
-                add.addEventListener('click', () => sec === 'character' ? openCharacterModal() : sec === 'worldbook' ? openImportModal() : openThemeImportModal(sec));
-                list.appendChild(add);
-                list.appendChild(el('div', 'hint-text', '💡 长按任意卡片：多选 / 全选 / 移动 / 删除'));
-            }
-            if (!items.length) list.appendChild(el('div', 'hint-text', '这个分类下还没有内容，点上面的＋导入吧～'));
-            items.forEach(it => {
-                const sel = selectedIds.has(it.id);
-                const card = el('div', 'file-card' + (sel ? ' selected' : ''));
-                const icon = isFile ? (sec === 'character' ? '👤' : '📄') : (it.kind === 'font' ? '🔤' : it.kind === 'css' ? '🎨' : '🌐');
+            filtered.forEach(f => {
+                const card = document.createElement('div');
+                card.className = `file-card ${selectedIds.has(f.id) ? 'selected' : ''}`;
                 card.innerHTML = `
                     <div class="file-info">
-                        ${isBatchMode ? `<span class="file-check">${sel ? '☑' : '☐'}</span>` : ''}
+                        ${isBatchMode ? `<input type="checkbox" class="file-checkbox" ${selectedIds.has(f.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectId(${f.id})">` : ''}
                         <div style="overflow:hidden">
-                            <div class="file-name">${icon} ${escapeHTML(it.name)}</div>
-                            <div class="file-tags"><span class="file-tag">✍️ ${escapeHTML(it.author)}</span><span class="file-tag">🏷️ ${escapeHTML(it.func)}</span></div>
+                            <div class="file-name">${isCharacter ? "👤" : "📄"} ${escapeHTML(f.name)}</div>
+                            <div class="file-tags">
+                                <span class="file-tag">✍️ ${escapeHTML(f.author)}</span>
+                                <span class="file-tag">🏷️ ${escapeHTML(f.func)}</span>
+                            </div>
                         </div>
                     </div>
-                    ${isBatchMode ? '' : `<span style="color:var(--accent-caramel);font-size:0.8rem;">${isFile ? '编辑' : '预览'} ›</span>`}`;
-                bindLongPress(card, () => startBatch(it.id), () => {
-                    if (isBatchMode) toggleSelectId(it.id); else if (isFile) openEditFile(it.id); else openThemePreview(it.id);
+                    <span style="color:var(--accent-caramel);font-size:0.8rem;">编辑 ›</span>`;
+                
+                bindLongPress(card, () => openMoveCategoryModal(f.id), () => {
+                    if (isBatchMode) { toggleSelectId(f.id); } else { openEditFile(f.id); }
                 });
                 list.appendChild(card);
             });
             container.appendChild(list);
         }
 
-        // 长按：进入多选并选中当前项（已在多选里就切换选中）
-        function startBatch(id) {
-            if (isBatchMode) { toggleSelectId(id); return; }
-            isBatchMode = true; selectedIds.clear(); selectedIds.add(id);
-            if (navigator.vibrate) navigator.vibrate(20);
-            rerender();
+        function renderThemeList(container, keyword, section) {
+            const isFont = section === 'font';
+            const list = document.createElement('div');
+            list.className = 'list-container';
+
+            let toolbarHTML = `
+                <div class="batch-toolbar">
+                    <div>
+                        <button class="batch-btn-sel" onclick="toggleBatchMode()">${isBatchMode ? '退出多选' : '📋 多选操作'}</button>
+                        ${isBatchMode ? `<span style="margin-left:6px">已选 ${selectedIds.size} 项</span>` : ''}
+                    </div>`;
+            if (isBatchMode && selectedIds.size > 0) {
+                toolbarHTML += `
+                    <div>
+                        <button class="batch-btn-move" onclick="openBatchMoveModal()">移动分类</button>
+                        <button class="batch-btn-del" onclick="batchDeleteFiles()">批量删除</button>
+                    </div>`;
+            }
+            toolbarHTML += `</div>`;
+
+            list.innerHTML = toolbarHTML + `
+                <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="openThemeImportModal('${section}')">
+                    <span style="font-size:1.1rem;margin-right:6px;">＋</span>
+                    <span>导入${isFont ? '字体文件' : '美化文件'}</span>
+                </div>`;
+
+            db.themeAssets.filter(asset => {
+                if (asset.section !== section) return false;
+                if (selectedAuthor !== '全部' && asset.author !== selectedAuthor) return false;
+                if (selectedFunc !== '全部' && asset.func !== selectedFunc) return false;
+                if (keyword && !(asset.name || '').toLowerCase().includes(keyword)) return false;
+                return true;
+            }).forEach(asset => {
+                const card = document.createElement('div');
+                card.className = `file-card ${selectedIds.has(asset.id) ? 'selected' : ''}`;
+                const icon = asset.kind === 'font' ? '🔤' : asset.kind === 'css' ? '🎨' : '🌐';
+                card.innerHTML = `
+                    <div class="file-info">
+                        ${isBatchMode ? `<input type="checkbox" class="file-checkbox" ${selectedIds.has(asset.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectId('${asset.id}')">` : ''}
+                        <div style="overflow:hidden">
+                            <div class="file-name">${icon} ${escapeHTML(asset.name)}</div>
+                            <div class="file-tags"><span class="file-tag">✍️ ${escapeHTML(asset.author)}</span><span class="file-tag">🏷️ ${escapeHTML(asset.func)}</span></div>
+                        </div>
+                    </div><span style="color:var(--accent-caramel);font-size:0.8rem;">预览 ›</span>`;
+                
+                bindLongPress(card, () => openMoveAssetCategoryModal(asset.id), () => {
+                    if (isBatchMode) { toggleSelectId(asset.id); } else { openThemePreview(asset.id); }
+                });
+                list.appendChild(card);
+            });
+            container.appendChild(list);
         }
+
+        function toggleBatchMode() {
+            isBatchMode = !isBatchMode;
+            selectedIds.clear();
+            renderMain();
+        }
+
         function toggleSelectId(id) {
-            if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
-            rerender();
+            if (selectedIds.has(id)) selectedIds.delete(id);
+            else selectedIds.add(id);
+            renderMain();
         }
 
-        function batchDelete() {
-            if (!selectedIds.size) return alert('请先选择要删除的项目');
-            if (!confirm(`确定删除选中的 ${selectedIds.size} 项吗？`)) return;
-            if (currentTab === 'phone') db.phones = db.phones.filter(x => !selectedIds.has(x.id));
-            else if (currentTab === 'api') db.apis = db.apis.filter(x => !selectedIds.has(x.id));
-            else if (currentTab === 'worldbook' || currentTab === 'character') db.files = db.files.filter(x => !selectedIds.has(x.id));
-            else {
-                const ids = [...selectedIds];
-                db.themeAssets = db.themeAssets.filter(x => !selectedIds.has(x.id));
-                ids.forEach(id => themeDBAction('delete', id).catch(() => {}));
+        function batchDeleteFiles() {
+            if (!confirm(`确定要删除选中的 ${selectedIds.size} 项吗？`)) return;
+            if (currentTab === 'worldbook' || currentTab === 'character') {
+                db.files = db.files.filter(f => !selectedIds.has(f.id));
+            } else {
+                db.themeAssets = db.themeAssets.filter(a => !selectedIds.has(a.id));
             }
-            saveDB(); exitBatch(); renderMain();
-        }
-
-        function batchMove() {
-            if (!selectedIds.size) return alert('请先选择要移动的项目');
-            if (currentTab === 'phone') {
-                const to = selectedPhoneType === 'free' ? 'paid' : 'free';
-                if (!confirm(`把选中的 ${selectedIds.size} 个小手机移到「${to === 'paid' ? '付费' : '免费'}小手机」吗？`)) return;
-                db.phones.forEach(p => { if (selectedIds.has(p.id)) p.type = to; });
-                saveDB(); exitBatch(); renderMain(); return;
-            }
-            openBatchMoveModal();
+            saveDB();
+            selectedIds.clear();
+            isBatchMode = false;
+            renderMain();
         }
 
         function openBatchMoveModal() {
+            if (selectedIds.size === 0) return alert('请先勾选要移动的项目。');
             const cats = db.categories[currentTab] || { authors: ['默认作者'], funcs: [] };
             document.getElementById('batchMoveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
             document.getElementById('batchMoveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}">${escapeHTML(fn)}</option>`).join('');
@@ -642,27 +648,46 @@
         function confirmBatchMove() {
             const author = document.getElementById('batchMoveAuthorSel').value;
             const func = document.getElementById('batchMoveFuncSel').value;
-            const target = (currentTab === 'worldbook' || currentTab === 'character') ? db.files : db.themeAssets;
-            target.forEach(x => { if (selectedIds.has(x.id)) { x.author = author; x.func = func; } });
-            saveDB(); exitBatch(); closeModal('batchMoveModal'); renderMain();
+            if (currentTab === 'worldbook' || currentTab === 'character') {
+                db.files.forEach(f => { if (selectedIds.has(f.id)) { f.author = author; f.func = func; } });
+            } else {
+                db.themeAssets.forEach(a => { if (selectedIds.has(a.id)) { a.author = author; a.func = func; } });
+            }
+            saveDB();
+            selectedIds.clear();
+            isBatchMode = false;
+            closeModal('batchMoveModal');
+            renderMain();
+                            }
+        function bindLongPress(element, longAction, clickAction) {
+            let isLong = false; let timer = null;
+            const start = () => { isLong = false; clearTimeout(timer); timer = setTimeout(() => { isLong = true; longAction(); }, 550); };
+            const cancel = () => clearTimeout(timer);
+            element.addEventListener('touchstart', start, { passive: true });
+            element.addEventListener('touchend', cancel);
+            element.addEventListener('touchmove', cancel);
+            element.addEventListener('mousedown', start);
+            element.addEventListener('mouseup', cancel);
+            element.addEventListener('mouseleave', cancel);
+            element.addEventListener('click', () => { if (!isLong) clickAction(); isLong = false; });
         }
 
-        // 长按：用 pointer 事件，手机和电脑都稳定
-        let swallowClick = false;
-        function bindLongPress(node, longAction, clickAction) {
-            let timer = null, sx = 0, sy = 0;
-            const cancel = () => { clearTimeout(timer); timer = null; };
-            node.addEventListener('pointerdown', e => {
-                swallowClick = false; sx = e.clientX; sy = e.clientY; cancel();
-                timer = setTimeout(() => { timer = null; swallowClick = true; longAction(); }, 500);
-            });
-            node.addEventListener('pointermove', e => {
-                if (timer && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) cancel();
-            });
-            ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => node.addEventListener(t, cancel));
-            node.addEventListener('contextmenu', e => e.preventDefault());
-            node.addEventListener('click', () => { if (swallowClick) { swallowClick = false; return; } clickAction(); });
+        function addCategory(type) {
+            const label = type === 'authors' ? '新作者名称' : '新功能分类名称';
+            const val = prompt(`请输入${label}：`);
+            if (val && val.trim()) {
+                const list = db.categories[currentTab][type];
+                if (!list.includes(val.trim())) { list.push(val.trim()); saveDB(); renderMain(); }
+            }
         }
+
+        function setFilter(type, val) {
+            if (type === 'author') selectedAuthor = val;
+            if (type === 'func') selectedFunc = val;
+            renderMain();
+        }
+
+        function setPhoneType(type) { selectedPhoneType = type; renderMain(); }
 
         let phoneIconData = '';
         function openPhoneIconOptions() { document.getElementById('pIconOptions').classList.toggle('hidden'); }
@@ -758,7 +783,7 @@
                 <a href="via://${escapeHTML(item.url)}" class="browser-btn">🔗 Via</a>
                 <a href="googlechrome://navigate?url=${encUrl}" class="browser-btn">🌐 Chrome</a>
                 <a href="microsoft-edge-https://${escapeHTML(cleanUrl)}" class="browser-btn">🌊 Edge</a>
-                <button class="browser-btn" style="grid-column:span 2;background:var(--card-cream);" data-u="${escapeHTML(item.url)}" onclick="copyText(this.dataset.u)">📋 复制链接</button>`;
+                <button class="browser-btn" style="grid-column:span 2;background:var(--card-cream);" onclick="copyText(${JSON.stringify(item.url)})">📋 复制链接</button>`;
             document.getElementById('deleteItemBtn').onclick = () => {
                 if (confirm('确定要删除吗？')) {
                     if (type === 'phone') db.phones = db.phones.filter(x => x.id !== id);
@@ -816,7 +841,6 @@
                 }
             }
         }
-
         async function handleFileImport() {
             const files = document.getElementById('fileInput').files;
             const author = document.getElementById('impAuthor').value;
@@ -895,7 +919,8 @@
             openModal('editFileModal');
         }
 
-        function saveFileEdit() {const f = db.files.find(x => x.id === currentEditingFileId);
+        function saveFileEdit() {
+            const f = db.files.find(x => x.id === currentEditingFileId);
             if (f) { f.name = document.getElementById('editFileName').value.trim() || f.name; f.content = document.getElementById('editFileContent').value; saveDB(); closeModal('editFileModal'); renderMain(); }
         }
 
@@ -1097,354 +1122,8 @@
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
         });
-/* ===== 补丁：分类长按/API分类/字体预览文字 ===== */
-        db.apiCats ||= ['默认分类'];
-        db.apis.forEach(a => { if (!a.cat) a.cat = db.apiCats[0]; });
-        let selectedApiCat = '全部';
-        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '#fontSampleText{min-height:64px!important}' }));
 
-        function catArr(section, type) {
-            if (section === 'api') return db.apiCats;
-            return db.categories[section][type === 'author' ? 'authors' : 'funcs'];
-        }
-        function countBy(section, key, val) {
-            const isFile = section === 'worldbook' || section === 'character';
-            const src = section === 'api' ? db.apis : isFile ? db.files : db.themeAssets;
-            return src.filter(x => (section === 'api' || x.section === section) && (val === '全部' || x[key] === val)).length;
-        }
-        function addCat(section, type) {
-            const v = prompt('请输入新分类名称：');
-            if (!v || !v.trim()) return;
-            const arr = catArr(section, type);
-            if (arr.includes(v.trim())) return alert('已有同名分类');
-            arr.push(v.trim()); saveDB(); renderMain();
-        }
-        // 长按分类：重命名 / 删除
-        function manageCat(section, type, name) {
-            if (name === '全部') return;
-            const arr = catArr(section, type);
-            const v = prompt(`分类「${name}」\n· 输入新名称 = 重命名\n· 输入 删除 = 删除此分类`, name);
-            if (v === null) return;
-            const nv = v.trim();
-            if (!nv || nv === name) return;
-            const isFile = section === 'worldbook' || section === 'character';
-            const items = section === 'api' ? db.apis : isFile ? db.files : db.themeAssets;
-            const key = section === 'api' ? 'cat' : type;
-            const mine = x => (section === 'api' || x.section === section) && x[key] === name;
-            if (nv === '删除') {
-                if (arr.length <= 1) return alert('至少要保留一个分类');
-                arr.splice(arr.indexOf(name), 1);
-                items.forEach(x => { if (mine(x)) x[key] = arr[0]; });
-            } else {
-                if (arr.includes(nv)) return alert('已有同名分类');
-                arr[arr.indexOf(name)] = nv;
-                items.forEach(x => { if (mine(x)) x[key] = nv; });
-            }
-            if (type === 'author') selectedAuthor = '全部'; else if (type === 'func') selectedFunc = '全部'; else selectedApiCat = '全部';
-            saveDB(); renderMain();
-        }
-        function renderCategoryBar(section) {
-            const bar = el('div', 'sub-category-bar');
-            const rows = section === 'api' ? [['cat', '分类：']] : [['author', '按作者：'], ['func', '按功能：']];
-            rows.forEach(([type, label]) => {
-                const row = el('div', 'cat-row');
-                row.appendChild(el('span', 'cat-label', label));
-                const cur = type === 'author' ? selectedAuthor : type === 'func' ? selectedFunc : selectedApiCat;
-                ['全部', ...catArr(section, type)].forEach(name => {
-                    const chip = el('span', 'cat-chip' + (cur === name ? ' active' : ''));
-                    chip.textContent = `${name} (${countBy(section, type, name)})`;
-                    bindLongPress(chip, () => manageCat(section, type, name), () => setFilter(type, name));
-                    row.appendChild(chip);
-                });
-                const add = el('button', 'cat-add-btn', '＋');
-                add.addEventListener('click', () => addCat(section, type));
-                row.appendChild(add);
-                bar.appendChild(row);
-            });
-            bar.appendChild(el('div', 'hint-text', '💡 长按分类名：重命名 / 删除'));
-            return bar;
-        }
-        function setFilter(type, val) {
-            if (type === 'author') selectedAuthor = val; else if (type === 'func') selectedFunc = val; else selectedApiCat = val;
-            exitBatch(); renderMain();
-        }
-        function getVisible(kw) {
-            const hit = s => (s || '').toLowerCase().includes(kw);
-            if (currentTab === 'phone') return db.phones.filter(p => (p.type || 'free') === selectedPhoneType && (hit(p.name) || hit(p.url)));
-            if (currentTab === 'api') return db.apis.filter(a => (selectedApiCat === '全部' || a.cat === selectedApiCat) && (hit(a.name) || hit(a.url)));
-            const catOk = x => x.section === currentTab && (selectedAuthor === '全部' || x.author === selectedAuthor) && (selectedFunc === '全部' || x.func === selectedFunc);
-            if (currentTab === 'worldbook' || currentTab === 'character') return db.files.filter(f => catOk(f) && (!kw || hit(f.name) || hit(f.content)));
-            return db.themeAssets.filter(a => catOk(a) && (!kw || hit(a.name)));
-        }
-        // API 页显示分类栏
-        const _rm = renderMain;
-        renderMain = function () {
-            _rm();
-            if (currentTab === 'api') { const c = document.getElementById('mainContent'); c.insertBefore(renderCategoryBar('api'), c.firstChild); }
-        };
-        // API 的批量移动 = 换分类
-        function makeBatchBar(items) {
-            const bar = el('div', 'batch-toolbar');
-            const allSel = items.length > 0 && items.every(i => selectedIds.has(i.id));
-            bar.appendChild(el('span', '', `已选 ${selectedIds.size} 项`));
-            const box = el('div', 'batch-btns');
-            const add = (cls, txt, fn) => { const b = el('button', cls, txt); b.addEventListener('click', fn); box.appendChild(b); };
-            add('batch-btn-sel', allSel ? '取消全选' : '全选', () => { items.forEach(i => allSel ? selectedIds.delete(i.id) : selectedIds.add(i.id)); rerender(); });
-            add('batch-btn-move', '移动', batchMove);
-            add('batch-btn-del', '删除', batchDelete);
-            add('batch-btn-sel', '完成', () => { exitBatch(); rerender(); });
-            bar.appendChild(box);
-            return bar;
-        }
-        function openBatchMoveModal() {
-            const isApi = currentTab === 'api';
-            const aSel = document.getElementById('batchMoveAuthorSel'), fSel = document.getElementById('batchMoveFuncSel');
-            const opt = a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`;
-            aSel.innerHTML = (isApi ? db.apiCats : db.categories[currentTab].authors).map(opt).join('');
-            fSel.innerHTML = isApi ? '' : db.categories[currentTab].funcs.map(opt).join('');
-            fSel.parentElement.style.display = isApi ? 'none' : '';
-            aSel.previousElementSibling.textContent = isApi ? '目标分类' : '目标作者分类';
-            openModal('batchMoveModal');
-        }
-        function confirmBatchMove() {
-            const author = document.getElementById('batchMoveAuthorSel').value;
-            const func = document.getElementById('batchMoveFuncSel').value;
-            if (currentTab === 'api') db.apis.forEach(x => { if (selectedIds.has(x.id)) x.cat = author; });
-            else (currentTab === 'worldbook' || currentTab === 'character' ? db.files : db.themeAssets).forEach(x => { if (selectedIds.has(x.id)) { x.author = author; x.func = func; } });
-            saveDB(); exitBatch(); closeModal('batchMoveModal'); renderMain();
-        }
-        // 添加 API 时选分类
-        document.getElementById('aName').closest('.form-group').insertAdjacentHTML('beforebegin', '<div class="form-group"><label>分类</label><select id="aCat"></select></div>');
-        const _om = openModal;
-        openModal = function (id) {
-            if (id === 'apiModal') document.getElementById('aCat').innerHTML = db.apiCats.map(c => `<option value="${escapeHTML(c)}" ${c === selectedApiCat ? 'selected' : ''}>${escapeHTML(c)}</option>`).join('');
-            _om(id);
-        };
-        const _sa = saveApi;
-        saveApi = function () {
-            const c = document.getElementById('aCat').value, n = db.apis.length;
-            _sa();
-            if (db.apis.length > n) { db.apis[db.apis.length - 1].cat = c; saveDB(); renderMain(); }
-        };
-        // 字体预览文字：想打什么就显示什么
-        const _fs = document.getElementById('fontSampleText'), _fp = document.getElementById('fontPreview');
-        _fp.textContent = _fs.value;
-        _fs.addEventListener('input', () => { _fp.textContent = _fs.value || ' '; });
-    /* ===== 补丁：侧滑返回 / 手机返回键 ===== */
-        const tabStack = [];
-        const _stOrig = switchTab;
-        switchTab = function (tab, btn) { if (tab !== currentTab) tabStack.push(currentTab); _stOrig(tab, btn); };
-
-        function toast(msg) {
-            let t = document.getElementById('hhToast');
-            if (!t) {
-                t = document.createElement('div'); t.id = 'hhToast';
-                t.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(92,75,59,.9);color:#fff;padding:8px 16px;border-radius:16px;font-size:.8rem;z-index:300;transition:opacity .3s;pointer-events:none';
-                document.body.appendChild(t);
-            }
-            t.textContent = msg; t.style.opacity = 1;
-            clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = 0; }, 1800);
-        }
-
-        // 返回一步：返回 true 表示处理了
-        function handleBack() {
-            if (!document.getElementById('coverPage').classList.contains('hidden')) return true;
-            const open = [...document.querySelectorAll('.modal-overlay.show')];
-            if (open.length) { closeModal(open[open.length - 1].id); return true; }
-            if (isBatchMode) { exitBatch(); rerender(); return true; }
-            const kw = document.getElementById('searchInput');
-            if (selectedAuthor !== '全部' || selectedFunc !== '全部' || selectedApiCat !== '全部' || selectedPhoneType !== 'free' || kw.value) {
-                selectedAuthor = selectedFunc = selectedApiCat = '全部'; selectedPhoneType = 'free'; kw.value = '';
-                renderMain(); return true;
-            }
-            if (tabStack.length) {
-                const prev = tabStack.pop();
-                const btn = [...document.querySelectorAll('.tab-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${prev}'`));
-                _stOrig(prev, btn); return true;
-            }
-            return false;
-        }
-
-        // 手机返回键 / 浏览器返回：先在页面内返回，不直接退出
-        let ignorePop = 0, lastRootBack = 0;
-        history.replaceState({ hh: 0 }, '');
-        history.pushState({ hh: 1 }, '');
-        window.addEventListener('popstate', () => {
-            if (Date.now() < ignorePop) { history.pushState({ hh: 1 }, ''); return; }
-            if (handleBack()) { history.pushState({ hh: 1 }, ''); return; }
-            if (Date.now() - lastRootBack < 2000) { history.back(); return; }
-            lastRootBack = Date.now(); toast('再返回一次退出'); history.pushState({ hh: 1 }, '');
-        });
-
-        // 屏幕左右边缘向内滑动 = 返回
-        let _sx = 0, _sy = 0, _edge = 0;
-        document.addEventListener('touchstart', e => {
-            const t = e.touches[0]; _sx = t.clientX; _sy = t.clientY;
-            _edge = _sx <= 28 ? 1 : _sx >= window.innerWidth - 28 ? -1 : 0;
-        }, { passive: true });
-        document.addEventListener('touchend', e => {
-            if (!_edge) return;
-            const t = e.changedTouches[0];
-            const dx = (t.clientX - _sx) * _edge, dy = Math.abs(t.clientY - _sy);
-            _edge = 0;
-            if (dx > 70 && dy < 60) { ignorePop = Date.now() + 700; if (!handleBack()) toast('已经在首页啦～'); }
-        }, { passive: true });
-
-        /* ===== 补丁：字体页去掉空白框 + 支持粘贴字体 URL ===== */
-        document.getElementById('themeFileInput').closest('.form-group').insertAdjacentHTML('afterend', '<div class="form-group" id="themeFontUrlBox"><label>或粘贴字体 URL（字体页可用）</label><input type="url" id="themeFontUrl" placeholder="https://.../xxx.ttf"></div>');
-        const _otim = openThemeImportModal;
-        openThemeImportModal = function (section) {
-            _otim(section);
-            document.getElementById('themeFontUrl').value = '';
-            document.getElementById('themeFontUrlBox').style.display = section === 'font' ? '' : 'none';
-        };
-
-        async function importFontUrl(url, author, func) {
-            const name = decodeURIComponent(url.split('?')[0].split('/').pop() || '网络字体');
-            const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-            let blob = null;
-            try { const r = await fetch(url); if (!r.ok) throw 0; blob = await r.blob(); } catch (e) {}
-            if (blob) await themeDBAction('put', id, { id, blob, name, type: blob.type });
-            db.themeAssets.push({ id, name, section: 'font', author, func, kind: 'font', content: '', url: blob ? '' : url });
-        }
-
-        async function handleThemeImport() {
-            const files = document.getElementById('themeFileInput').files;
-            const url = document.getElementById('themeFontUrl').value.trim();
-            if (!files.length && !url) return alert('请选择文件或粘贴字体 URL');
-            if (url && !/^https?:\/\//i.test(url)) return alert('URL 需要以 http:// 或 https:// 开头');
-            const author = document.getElementById('themeImpAuthor').value;
-            const func = document.getElementById('themeImpFunc').value;
-            for (const file of files) {
-                const kind = getAssetKind(file.name);
-                if (!kind) continue;
-                const section = kind === 'font' ? 'font' : 'theme';
-                const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-                let content = kind !== 'font' ? await readTextFile(file) : '';
-                await themeDBAction('put', id, { id, blob: file, name: file.name, type: file.type });
-                db.themeAssets.push({ id, name: file.name, section, author, func, kind, content });
-            }
-            if (url) await importFontUrl(url, author, func);
-            saveDB(); closeModal('themeImportModal'); renderMain(); alert('导入完成');
-        }
-
-        const _otp = openThemePreview;
-        openThemePreview = async function (id) {
-            const a = db.themeAssets.find(x => x.id === id);
-            const isFont = a && a.kind === 'font';
-            document.getElementById('themePreviewArea').style.display = isFont ? 'none' : '';
-            if (!(isFont && a.url)) return _otp(id);
-            const $ = i => document.getElementById(i);
-            currentThemeAssetId = id; themeEditorVisible = false;
-            $('themeEditName').value = a.name; $('themeTextEditor').classList.add('hidden'); $('themeEditToggle').classList.add('hidden');
-            $('themePreviewTitle').innerText = a.name; $('themePreviewHint').innerText = '';
-            $('fontSampleArea').classList.remove('hidden');
-            if (currentFontFace) { try { document.fonts.delete(currentFontFace); } catch (e) {} currentFontFace = null; }
-            const fam = `Font_${id}`;
-            try {
-                currentFontFace = new FontFace(fam, `url("${a.url}")`);
-                await currentFontFace.load(); document.fonts.add(currentFontFace);
-                $('fontPreview').style.fontFamily = `"${fam}"`;
-            } catch (e) { $('themePreviewHint').innerText = '字体加载失败：这个链接可能不允许跨域，换个直链试试'; }
-            openModal('themePreviewModal');
-        };
-        const _dta = downloadThemeAsset;
-        downloadThemeAsset = async function () {
-            const a = db.themeAssets.find(x => x.id === currentThemeAssetId);
-            if (a && a.url) return window.open(a.url, '_blank');
-            return _dta();
-        }
-    /* ===== 补丁：增加更多浏览器按钮 ===== */
-        // 想增减浏览器，改这一行就行：['按钮名字', '安卓包名']
-        const EXTRA_BROWSERS = [
-            ['🅇 X浏览器', 'com.mmbox.xbrowser'], ['🌧️ 雨见', 'com.yujian.ResideMenuDemo'], ['🔭 可拓', 'com.yjllq.kito'],
-            ['🦊 火狐', 'org.mozilla.firefox'], ['🐎 UC', 'com.UCMobile'], ['🛡️ 360', 'com.qihoo.browser'],
-            ['🦁 Brave', 'com.brave.browser'], ['📱 三星', 'com.sec.android.app.sbrowser'], ['🍊 小米', 'com.android.browser']
-        ];
-        function buildPkgIntent(rawUrl, pkg) {
-            try {
-                const t = new URL(rawUrl);
-                if (t.protocol !== 'http:' && t.protocol !== 'https:') return rawUrl;
-                return `intent://${t.host}${t.pathname}${t.search}#Intent;scheme=${t.protocol.slice(0, -1)};package=${pkg};S.browser_fallback_url=${encodeURIComponent(t.href)};end`;
-            } catch (e) { return rawUrl; }
-        }
-        const _olm = openLaunchModal;
-        openLaunchModal = function (type, id) {
-            _olm(type, id);
-            const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
-            if (!item) return;
-            const box = document.getElementById('browserButtons');
-            const copyBtn = box.lastElementChild;
-            EXTRA_BROWSERS.forEach(([name, pkg]) => {
-                const a = document.createElement('a');
-                a.className = 'browser-btn'; a.textContent = name; a.href = buildPkgIntent(item.url, pkg);
-                box.insertBefore(a, copyBtn);
-            });
-        };
-    /* ===== 补丁：强制全屏 + 小手机内嵌全屏打开 ===== */
-        document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
-        document.head.appendChild(Object.assign(document.createElement('style'), {
-            textContent: 'html{background:var(--bg-cream)}@media (display-mode: fullscreen){body{padding-top:max(12px,env(safe-area-inset-top))}}'
-        }));
-        function goFullscreen() {
-            if (document.fullscreenElement || document.webkitFullscreenElement) return;
-            const d = document.documentElement;
-            const f = d.requestFullscreen || d.webkitRequestFullscreen;
-            if (!f) return;
-            try { const p = f.call(d, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-        }
-        // 只要不在全屏，点一下屏幕就自动回到全屏
-        ['click', 'touchend'].forEach(t => document.addEventListener(t, goFullscreen, { passive: true }));
-
-        // 小手机：在 HappyHome 里全屏内嵌打开
-        function openInFrame(url) {
-            let m = document.getElementById('fsFrame');
-            if (!m) {
-                m = document.createElement('div');
-                m.id = 'fsFrame'; m.className = 'modal-overlay';
-                m.style.cssText = 'padding:0;background:#000;z-index:250;';
-                m.innerHTML = '<div id="fsFrameBox" style="position:absolute;inset:0"></div>' +
-                    '<div style="position:absolute;z-index:2;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;gap:6px">' +
-                    '<button id="fsOut" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff">↗</button>' +
-                    '<button id="fsClose" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff">✕</button></div>';
-                document.body.appendChild(m);
-                m.querySelector('#fsClose').onclick = () => closeModal('fsFrame');
-            }
-            m.querySelector('#fsOut').onclick = () => window.open(url, '_blank');
-            document.getElementById('fsFrameBox').innerHTML = `<iframe src="${escapeHTML(url)}" style="width:100%;height:100%;border:0;background:#fff" allow="fullscreen; autoplay; camera; microphone; clipboard-read; clipboard-write" allowfullscreen></iframe>`;
-            closeModal('launchModal'); openModal('fsFrame'); goFullscreen();
-        }
-        const _cm = closeModal;
-        closeModal = function (id) { _cm(id); if (id === 'fsFrame') document.getElementById('fsFrameBox').innerHTML = ''; };
-        const _olm2 = openLaunchModal;
-        openLaunchModal = function (type, id) {
-            _olm2(type, id);
-            const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
-            if (!item) return;
-            const b = document.createElement('button');
-            b.className = 'browser-btn'; b.style.cssText = 'grid-column:span 2;background:var(--accent-yellow);';
-            b.textContent = '🖥️ 全屏打开（内嵌）';
-            b.onclick = () => openInFrame(item.url);
-            const box = document.getElementById('browserButtons');
-            box.insertBefore(b, box.firstChild);
-        };
-     /* ===== 补丁：恢复自动全屏 + 隐藏状态语卡片 ===== */
-        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '#hhHero{display:none!important}' }));
-        let hhFsPending = false;
-        goFullscreen = function () {
-            if (/; wv\)/.test(navigator.userAgent)) return; // APK 里由外壳负责全屏
-            if (document.fullscreenElement || document.webkitFullscreenElement) return;
-            const d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
-            if (!f) return;
-            try { const p = f.call(d, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-        };
-        // 点"点击进入"时自动全屏
-        enterApp = async function () { document.getElementById('coverPage').classList.add('hidden'); goFullscreen(); };
-        // 切走再回来时，下一次点击自动恢复全屏（你自己手动退出全屏时不会强拉回去）
-        document.addEventListener('visibilitychange', () => { if (document.hidden) hhFsPending = true; });
-        ['click', 'touchend'].forEach(t => document.addEventListener(t, () => { if (hhFsPending) { hhFsPending = false; goFullscreen(); } }, { passive: true }));
         renderMain();
     </script>
 </body>
 </html>
-    
