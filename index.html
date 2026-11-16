@@ -1290,7 +1290,7 @@
             if (dx > 70 && dy < 60) { ignorePop = Date.now() + 700; if (!handleBack()) toast('已经在首页啦～'); }
         }, { passive: true });
 
-/* ===== 补丁：字体页去掉空白框 + 支持粘贴字体 URL ===== */
+        /* ===== 补丁：字体页去掉空白框 + 支持粘贴字体 URL ===== */
         document.getElementById('themeFileInput').closest('.form-group').insertAdjacentHTML('afterend', '<div class="form-group" id="themeFontUrlBox"><label>或粘贴字体 URL（字体页可用）</label><input type="url" id="themeFontUrl" placeholder="https://.../xxx.ttf"></div>');
         const _otim = openThemeImportModal;
         openThemeImportModal = function (section) {
