@@ -1097,7 +1097,140 @@
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
         });
+/* ===== 补丁：分类长按/API分类/字体预览文字 ===== */
+        db.apiCats ||= ['默认分类'];
+        db.apis.forEach(a => { if (!a.cat) a.cat = db.apiCats[0]; });
+        let selectedApiCat = '全部';
+        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '#fontSampleText{min-height:64px!important}' }));
 
+        function catArr(section, type) {
+            if (section === 'api') return db.apiCats;
+            return db.categories[section][type === 'author' ? 'authors' : 'funcs'];
+        }
+        function countBy(section, key, val) {
+            const isFile = section === 'worldbook' || section === 'character';
+            const src = section === 'api' ? db.apis : isFile ? db.files : db.themeAssets;
+            return src.filter(x => (section === 'api' || x.section === section) && (val === '全部' || x[key] === val)).length;
+        }
+        function addCat(section, type) {
+            const v = prompt('请输入新分类名称：');
+            if (!v || !v.trim()) return;
+            const arr = catArr(section, type);
+            if (arr.includes(v.trim())) return alert('已有同名分类');
+            arr.push(v.trim()); saveDB(); renderMain();
+        }
+        // 长按分类：重命名 / 删除
+        function manageCat(section, type, name) {
+            if (name === '全部') return;
+            const arr = catArr(section, type);
+            const v = prompt(`分类「${name}」\n· 输入新名称 = 重命名\n· 输入 删除 = 删除此分类`, name);
+            if (v === null) return;
+            const nv = v.trim();
+            if (!nv || nv === name) return;
+            const isFile = section === 'worldbook' || section === 'character';
+            const items = section === 'api' ? db.apis : isFile ? db.files : db.themeAssets;
+            const key = section === 'api' ? 'cat' : type;
+            const mine = x => (section === 'api' || x.section === section) && x[key] === name;
+            if (nv === '删除') {
+                if (arr.length <= 1) return alert('至少要保留一个分类');
+                arr.splice(arr.indexOf(name), 1);
+                items.forEach(x => { if (mine(x)) x[key] = arr[0]; });
+            } else {
+                if (arr.includes(nv)) return alert('已有同名分类');
+                arr[arr.indexOf(name)] = nv;
+                items.forEach(x => { if (mine(x)) x[key] = nv; });
+            }
+            if (type === 'author') selectedAuthor = '全部'; else if (type === 'func') selectedFunc = '全部'; else selectedApiCat = '全部';
+            saveDB(); renderMain();
+        }
+        function renderCategoryBar(section) {
+            const bar = el('div', 'sub-category-bar');
+            const rows = section === 'api' ? [['cat', '分类：']] : [['author', '按作者：'], ['func', '按功能：']];
+            rows.forEach(([type, label]) => {
+                const row = el('div', 'cat-row');
+                row.appendChild(el('span', 'cat-label', label));
+                const cur = type === 'author' ? selectedAuthor : type === 'func' ? selectedFunc : selectedApiCat;
+                ['全部', ...catArr(section, type)].forEach(name => {
+                    const chip = el('span', 'cat-chip' + (cur === name ? ' active' : ''));
+                    chip.textContent = `${name} (${countBy(section, type, name)})`;
+                    bindLongPress(chip, () => manageCat(section, type, name), () => setFilter(type, name));
+                    row.appendChild(chip);
+                });
+                const add = el('button', 'cat-add-btn', '＋');
+                add.addEventListener('click', () => addCat(section, type));
+                row.appendChild(add);
+                bar.appendChild(row);
+            });
+            bar.appendChild(el('div', 'hint-text', '💡 长按分类名：重命名 / 删除'));
+            return bar;
+        }
+        function setFilter(type, val) {
+            if (type === 'author') selectedAuthor = val; else if (type === 'func') selectedFunc = val; else selectedApiCat = val;
+            exitBatch(); renderMain();
+        }
+        function getVisible(kw) {
+            const hit = s => (s || '').toLowerCase().includes(kw);
+            if (currentTab === 'phone') return db.phones.filter(p => (p.type || 'free') === selectedPhoneType && (hit(p.name) || hit(p.url)));
+            if (currentTab === 'api') return db.apis.filter(a => (selectedApiCat === '全部' || a.cat === selectedApiCat) && (hit(a.name) || hit(a.url)));
+            const catOk = x => x.section === currentTab && (selectedAuthor === '全部' || x.author === selectedAuthor) && (selectedFunc === '全部' || x.func === selectedFunc);
+            if (currentTab === 'worldbook' || currentTab === 'character') return db.files.filter(f => catOk(f) && (!kw || hit(f.name) || hit(f.content)));
+            return db.themeAssets.filter(a => catOk(a) && (!kw || hit(a.name)));
+        }
+        // API 页显示分类栏
+        const _rm = renderMain;
+        renderMain = function () {
+            _rm();
+            if (currentTab === 'api') { const c = document.getElementById('mainContent'); c.insertBefore(renderCategoryBar('api'), c.firstChild); }
+        };
+        // API 的批量移动 = 换分类
+        function makeBatchBar(items) {
+            const bar = el('div', 'batch-toolbar');
+            const allSel = items.length > 0 && items.every(i => selectedIds.has(i.id));
+            bar.appendChild(el('span', '', `已选 ${selectedIds.size} 项`));
+            const box = el('div', 'batch-btns');
+            const add = (cls, txt, fn) => { const b = el('button', cls, txt); b.addEventListener('click', fn); box.appendChild(b); };
+            add('batch-btn-sel', allSel ? '取消全选' : '全选', () => { items.forEach(i => allSel ? selectedIds.delete(i.id) : selectedIds.add(i.id)); rerender(); });
+            add('batch-btn-move', '移动', batchMove);
+            add('batch-btn-del', '删除', batchDelete);
+            add('batch-btn-sel', '完成', () => { exitBatch(); rerender(); });
+            bar.appendChild(box);
+            return bar;
+        }
+        function openBatchMoveModal() {
+            const isApi = currentTab === 'api';
+            const aSel = document.getElementById('batchMoveAuthorSel'), fSel = document.getElementById('batchMoveFuncSel');
+            const opt = a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`;
+            aSel.innerHTML = (isApi ? db.apiCats : db.categories[currentTab].authors).map(opt).join('');
+            fSel.innerHTML = isApi ? '' : db.categories[currentTab].funcs.map(opt).join('');
+            fSel.parentElement.style.display = isApi ? 'none' : '';
+            aSel.previousElementSibling.textContent = isApi ? '目标分类' : '目标作者分类';
+            openModal('batchMoveModal');
+        }
+        function confirmBatchMove() {
+            const author = document.getElementById('batchMoveAuthorSel').value;
+            const func = document.getElementById('batchMoveFuncSel').value;
+            if (currentTab === 'api') db.apis.forEach(x => { if (selectedIds.has(x.id)) x.cat = author; });
+            else (currentTab === 'worldbook' || currentTab === 'character' ? db.files : db.themeAssets).forEach(x => { if (selectedIds.has(x.id)) { x.author = author; x.func = func; } });
+            saveDB(); exitBatch(); closeModal('batchMoveModal'); renderMain();
+        }
+        // 添加 API 时选分类
+        document.getElementById('aName').closest('.form-group').insertAdjacentHTML('beforebegin', '<div class="form-group"><label>分类</label><select id="aCat"></select></div>');
+        const _om = openModal;
+        openModal = function (id) {
+            if (id === 'apiModal') document.getElementById('aCat').innerHTML = db.apiCats.map(c => `<option value="${escapeHTML(c)}" ${c === selectedApiCat ? 'selected' : ''}>${escapeHTML(c)}</option>`).join('');
+            _om(id);
+        };
+        const _sa = saveApi;
+        saveApi = function () {
+            const c = document.getElementById('aCat').value, n = db.apis.length;
+            _sa();
+            if (db.apis.length > n) { db.apis[db.apis.length - 1].cat = c; saveDB(); renderMain(); }
+        };
+        // 字体预览文字：想打什么就显示什么
+        const _fs = document.getElementById('fontSampleText'), _fp = document.getElementById('fontPreview');
+        _fp.textContent = _fs.value;
+        _fs.addEventListener('input', () => { _fp.textContent = _fs.value || ' '; });
+    
         renderMain();
     </script>
 </body>
