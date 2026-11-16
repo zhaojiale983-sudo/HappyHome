@@ -1354,6 +1354,33 @@
             if (a && a.url) return window.open(a.url, '_blank');
             return _dta();
         }
+    /* ===== 补丁：增加更多浏览器按钮 ===== */
+        // 想增减浏览器，改这一行就行：['按钮名字', '安卓包名']
+        const EXTRA_BROWSERS = [
+            ['🅇 X浏览器', 'com.mmbox.xbrowser'], ['🌧️ 雨见', 'com.yujian.ResideMenuDemo'], ['🔭 可拓', 'com.yjllq.kito'],
+            ['🦊 火狐', 'org.mozilla.firefox'], ['🐎 UC', 'com.UCMobile'], ['🛡️ 360', 'com.qihoo.browser'],
+            ['🦁 Brave', 'com.brave.browser'], ['📱 三星', 'com.sec.android.app.sbrowser'], ['🍊 小米', 'com.android.browser']
+        ];
+        function buildPkgIntent(rawUrl, pkg) {
+            try {
+                const t = new URL(rawUrl);
+                if (t.protocol !== 'http:' && t.protocol !== 'https:') return rawUrl;
+                return `intent://${t.host}${t.pathname}${t.search}#Intent;scheme=${t.protocol.slice(0, -1)};package=${pkg};S.browser_fallback_url=${encodeURIComponent(t.href)};end`;
+            } catch (e) { return rawUrl; }
+        }
+        const _olm = openLaunchModal;
+        openLaunchModal = function (type, id) {
+            _olm(type, id);
+            const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
+            if (!item) return;
+            const box = document.getElementById('browserButtons');
+            const copyBtn = box.lastElementChild;
+            EXTRA_BROWSERS.forEach(([name, pkg]) => {
+                const a = document.createElement('a');
+                a.className = 'browser-btn'; a.textContent = name; a.href = buildPkgIntent(item.url, pkg);
+                box.insertBefore(a, copyBtn);
+            });
+        };
         renderMain();
     </script>
 </body>
