@@ -1230,6 +1230,65 @@
         const _fs = document.getElementById('fontSampleText'), _fp = document.getElementById('fontPreview');
         _fp.textContent = _fs.value;
         _fs.addEventListener('input', () => { _fp.textContent = _fs.value || ' '; });
+    /* ===== 补丁：侧滑返回 / 手机返回键 ===== */
+        const tabStack = [];
+        const _stOrig = switchTab;
+        switchTab = function (tab, btn) { if (tab !== currentTab) tabStack.push(currentTab); _stOrig(tab, btn); };
+
+        function toast(msg) {
+            let t = document.getElementById('hhToast');
+            if (!t) {
+                t = document.createElement('div'); t.id = 'hhToast';
+                t.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(92,75,59,.9);color:#fff;padding:8px 16px;border-radius:16px;font-size:.8rem;z-index:300;transition:opacity .3s;pointer-events:none';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg; t.style.opacity = 1;
+            clearTimeout(t._t); t._t = setTimeout(() => { t.style.opacity = 0; }, 1800);
+        }
+
+        // 返回一步：返回 true 表示处理了
+        function handleBack() {
+            if (!document.getElementById('coverPage').classList.contains('hidden')) return true;
+            const open = [...document.querySelectorAll('.modal-overlay.show')];
+            if (open.length) { closeModal(open[open.length - 1].id); return true; }
+            if (isBatchMode) { exitBatch(); rerender(); return true; }
+            const kw = document.getElementById('searchInput');
+            if (selectedAuthor !== '全部' || selectedFunc !== '全部' || selectedApiCat !== '全部' || selectedPhoneType !== 'free' || kw.value) {
+                selectedAuthor = selectedFunc = selectedApiCat = '全部'; selectedPhoneType = 'free'; kw.value = '';
+                renderMain(); return true;
+            }
+            if (tabStack.length) {
+                const prev = tabStack.pop();
+                const btn = [...document.querySelectorAll('.tab-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${prev}'`));
+                _stOrig(prev, btn); return true;
+            }
+            return false;
+        }
+
+        // 手机返回键 / 浏览器返回：先在页面内返回，不直接退出
+        let ignorePop = 0, lastRootBack = 0;
+        history.replaceState({ hh: 0 }, '');
+        history.pushState({ hh: 1 }, '');
+        window.addEventListener('popstate', () => {
+            if (Date.now() < ignorePop) { history.pushState({ hh: 1 }, ''); return; }
+            if (handleBack()) { history.pushState({ hh: 1 }, ''); return; }
+            if (Date.now() - lastRootBack < 2000) { history.back(); return; }
+            lastRootBack = Date.now(); toast('再返回一次退出'); history.pushState({ hh: 1 }, '');
+        });
+
+        // 屏幕左右边缘向内滑动 = 返回
+        let _sx = 0, _sy = 0, _edge = 0;
+        document.addEventListener('touchstart', e => {
+            const t = e.touches[0]; _sx = t.clientX; _sy = t.clientY;
+            _edge = _sx <= 28 ? 1 : _sx >= window.innerWidth - 28 ? -1 : 0;
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            if (!_edge) return;
+            const t = e.changedTouches[0];
+            const dx = (t.clientX - _sx) * _edge, dy = Math.abs(t.clientY - _sy);
+            _edge = 0;
+            if (dx > 70 && dy < 60) { ignorePop = Date.now() + 700; if (!handleBack()) toast('已经在首页啦～'); }
+        }, { passive: true });
     
         renderMain();
     </script>
