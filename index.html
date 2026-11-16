@@ -1931,6 +1931,91 @@ openLaunchModal = function (type, id) {
         saveDB(); closeModal('editApiModal'); renderMain(); toast('API站子已更新');
     };
 }
+    /* ===== 补丁：Chrome使用googlechrome://直接跳转，其余浏览器保留intent包名唤起 ===== */
+{
+    const EXTRA_BROWSERS = [
+        ['🅇 X浏览器', 'com.mmbox.xbrowser'],
+        ['🌧️ 雨见', 'com.yujian.ResideMenuDemo'],
+        ['🔭 可拓', 'com.yjllq.kito'],
+        ['🦊 火狐', 'org.mozilla.firefox'],
+        ['🐎 UC', 'com.UCMobile'],
+        ['🛡️ 360', 'com.qihoo.browser'],
+        ['🦁 Brave', 'com.brave.browser'],
+        ['📱 三星浏览器', 'com.sec.android.app.sbrowser'],
+        ['🍊 小米浏览器', 'com.android.browser']
+    ];
+
+    function buildPkgIntent(rawUrl, pkg) {
+        try {
+            const t = new URL(rawUrl);
+            if (t.protocol !== 'http:' && t.protocol !== 'https:') return rawUrl;
+            return `intent://${t.host}${t.pathname}${t.search}#Intent;scheme=${t.protocol.slice(0,-1)};package=${pkg};S.browser_fallback_url=${encodeURIComponent(t.href)};end`;
+        } catch(e) { return rawUrl; }
+    }
+
+    const _olmChromeDirect = openLaunchModal;
+    openLaunchModal = function (type, id) {
+        _olmChromeDirect(type, id);
+        const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
+        if (!item) return;
+        const box = document.getElementById('browserButtons');
+        box.innerHTML = '';
+
+        // 默认浏览器兜底
+        const aDefault = document.createElement('a');
+        aDefault.className = 'browser-btn';
+        aDefault.target = '_blank';
+        aDefault.rel = 'noopener noreferrer';
+        aDefault.href = escapeHTML(item.url);
+        aDefault.textContent = '🧭 默认浏览器（系统选择）';
+        box.appendChild(aDefault);
+
+        // ========== Chrome：直接使用 googlechrome:// 协议直接跳转 ==========
+        const enc = encodeURIComponent(item.url);
+        const aChrome = document.createElement('a');
+        aChrome.className = 'browser-btn';
+        aChrome.href = `googlechrome://navigate?url=${enc}`;
+        aChrome.textContent = '🌐 Chrome';
+        box.appendChild(aChrome);
+
+        // 其余浏览器继续 intent 包名唤起
+        EXTRA_BROWSERS.forEach(([name, pkg]) => {
+            const a = document.createElement('a');
+            a.className = 'browser-btn';
+            a.href = buildPkgIntent(item.url, pkg);
+            a.textContent = name;
+            box.appendChild(a);
+        });
+
+        // 复制链接按钮
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'browser-btn';
+        copyBtn.style.gridColumn = 'span 2';
+        copyBtn.dataset.u = item.url;
+        copyBtn.textContent = '📋 复制链接自行粘贴';
+        copyBtn.addEventListener('click', function(){
+            copyText(this.dataset.u);
+        });
+        box.appendChild(copyBtn);
+
+        // 行内复制按钮
+        const det = document.getElementById('launchDetails');
+        [...det.children].forEach(div => {
+            const raw = div.textContent || '';
+            const idx = raw.indexOf('：');
+            if (idx < 0) return;
+            const val = raw.slice(idx + 1).trim();
+            if (!val) return;
+            const cp = document.createElement('button');
+            cp.type = 'button';
+            cp.className = 'mini-copy-btn';
+            cp.textContent = '复制';
+            cp.dataset.u = val;
+            cp.addEventListener('click', e => { e.stopPropagation(); copyText(cp.dataset.u); });
+            div.appendChild(cp);
+        });
+    };
+}
         renderMain();
     </script>
 </body>
