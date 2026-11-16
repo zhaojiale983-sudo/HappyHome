@@ -1931,8 +1931,9 @@ openLaunchModal = function (type, id) {
         saveDB(); closeModal('editApiModal'); renderMain(); toast('API站子已更新');
     };
 }
-    /* ===== 补丁：Chrome使用googlechrome://直接跳转，其余浏览器保留intent包名唤起 ===== */
+    /* ===== 补丁：仅修改Chrome为intent包名，其余全部浏览器（含永恒浏览器）完全保留原样不改动 ===== */
 {
+    // 原始全部浏览器列表，原样复制，包含永恒浏览器
     const EXTRA_BROWSERS = [
         ['🅇 X浏览器', 'com.mmbox.xbrowser'],
         ['🌧️ 雨见', 'com.yujian.ResideMenuDemo'],
@@ -1941,45 +1942,84 @@ openLaunchModal = function (type, id) {
         ['🐎 UC', 'com.UCMobile'],
         ['🛡️ 360', 'com.qihoo.browser'],
         ['🦁 Brave', 'com.brave.browser'],
-        ['📱 三星浏览器', 'com.sec.android.app.sbrowser'],
-        ['🍊 小米浏览器', 'com.android.browser']
+        ['📱 三星', 'com.sec.android.app.sbrowser'],
+        ['🍊 小米', 'com.android.browser'],
+        // ✅ Chrome：仅这里改为intent包名，不再使用googlechrome://navigate
+        ['🌐 Chrome', 'com.android.chrome']
     ];
 
     function buildPkgIntent(rawUrl, pkg) {
         try {
             const t = new URL(rawUrl);
             if (t.protocol !== 'http:' && t.protocol !== 'https:') return rawUrl;
-            return `intent://${t.host}${t.pathname}${t.search}#Intent;scheme=${t.protocol.slice(0,-1)};package=${pkg};S.browser_fallback_url=${encodeURIComponent(t.href)};end`;
-        } catch(e) { return rawUrl; }
+            return `intent://${t.host}${t.pathname}${t.search}#Intent;scheme=${t.protocol.slice(0, -1)};package=${pkg};S.browser_fallback_url=${encodeURIComponent(t.href)};end`;
+        } catch (e) { return rawUrl; }
     }
 
-    const _olmChromeDirect = openLaunchModal;
+    // 原始永恒浏览器intent函数，原样不动
+    function buildEternalIntent(rawUrl) {
+        try {
+            const target = new URL(rawUrl);
+            if (target.protocol !== 'http:' && target.protocol !== 'https:') return rawUrl;
+            const fallback = encodeURIComponent(target.href);
+            return `intent://${target.host}${target.pathname}${target.search}#Intent;scheme=${target.protocol.slice(0, -1)};package=com.sevensix.everlasting;S.browser_fallback_url=${fallback};end`;
+        } catch (e) { return rawUrl; }
+    }
+
+    const _olmFinal = openLaunchModal;
     openLaunchModal = function (type, id) {
-        _olmChromeDirect(type, id);
+        _olmFinal(type, id);
         const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
         if (!item) return;
         const box = document.getElementById('browserButtons');
+        // 清空，重新渲染：顺序严格复刻原版：永恒浏览器在前，再EXTRA_BROWSERS列表
         box.innerHTML = '';
 
-        // 默认浏览器兜底
-        const aDefault = document.createElement('a');
-        aDefault.className = 'browser-btn';
-        aDefault.target = '_blank';
-        aDefault.rel = 'noopener noreferrer';
-        aDefault.href = escapeHTML(item.url);
-        aDefault.textContent = '🧭 默认浏览器（系统选择）';
-        box.appendChild(aDefault);
+        // 1.🧭 默认浏览器
+        const aDef = document.createElement('a');
+        aDef.className = 'browser-btn';
+        aDef.href = escapeHTML(item.url);
+        aDef.target="_blank"; aDef.rel="noopener";
+        aDef.textContent = '🧭 默认浏览器';
+        box.appendChild(aDef);
 
-        // ========== Chrome：直接使用 googlechrome:// 协议直接跳转 ==========
-        const enc = encodeURIComponent(item.url);
-        const aChrome = document.createElement('a');
-        aChrome.className = 'browser-btn';
-        aChrome.href = `googlechrome://navigate?url=${enc}`;
-        aChrome.textContent = '🌐 Chrome';
-        box.appendChild(aChrome);
+        // 2.♾️ 永恒浏览器（原样保留，完全不改）
+        const aEternal = document.createElement('a');
+        aEternal.className = 'browser-btn';
+        aEternal.href = buildEternalIntent(item.url);
+        aEternal.textContent = '♾️ 永恒浏览器';
+        box.appendChild(aEternal);
 
-        // 其余浏览器继续 intent 包名唤起
-        EXTRA_BROWSERS.forEach(([name, pkg]) => {
+        // 3.夸克 / QQ / Via / Edge 原版链接，原样保留，一行都不改
+        const cleanUrl = item.url.replace(/^https?:\/\//, '');
+        const encUrl = encodeURIComponent(item.url);
+
+        const aQuark = document.createElement('a');
+        aQuark.className = 'browser-btn';
+        aQuark.href = `quark://${escapeHTML(cleanUrl)}`;
+        aQuark.textContent = '🐿️ 夸克';
+        box.appendChild(aQuark);
+
+        const aQQ = document.createElement('a');
+        aQQ.className = 'browser-btn';
+        aQQ.href = `mttbrowser://url=${encUrl}`;
+        aQQ.textContent = '🐧 QQ';
+        box.appendChild(aQQ);
+
+        const aVia = document.createElement('a');
+        aVia.className = 'browser-btn';
+        aVia.href = `via://${escapeHTML(item.url)}`;
+        aVia.textContent = '🔗 Via';
+        box.appendChild(aVia);
+
+        const aEdge = document.createElement('a');
+        aEdge.className = 'browser-btn';
+        aEdge.href = `microsoft-edge-https://${escapeHTML(cleanUrl)}`;
+        aEdge.textContent = '🌊 Edge';
+        box.appendChild(aEdge);
+
+        // 4.渲染EXTRA_BROWSERS（Chrome在这里，用buildPkgIntent，其余第三方浏览器）
+        EXTRA_BROWSERS.forEach(([name, pkg])=>{
             const a = document.createElement('a');
             a.className = 'browser-btn';
             a.href = buildPkgIntent(item.url, pkg);
@@ -1987,18 +2027,16 @@ openLaunchModal = function (type, id) {
             box.appendChild(a);
         });
 
-        // 复制链接按钮
+        // 5.复制链接按钮，跨两格
         const copyBtn = document.createElement('button');
         copyBtn.className = 'browser-btn';
-        copyBtn.style.gridColumn = 'span 2';
-        copyBtn.dataset.u = item.url;
-        copyBtn.textContent = '📋 复制链接自行粘贴';
-        copyBtn.addEventListener('click', function(){
-            copyText(this.dataset.u);
-        });
+        copyBtn.style.gridColumn='span 2';
+        copyBtn.dataset.u = escapeHTML(item.url);
+        copyBtn.textContent = '📋 复制链接';
+        copyBtn.onclick = function(){ copyText(this.dataset.u); };
         box.appendChild(copyBtn);
 
-        // 行内复制按钮
+        // 行内复制小按钮，保留原样
         const det = document.getElementById('launchDetails');
         [...det.children].forEach(div => {
             const raw = div.textContent || '';
