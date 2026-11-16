@@ -1,186 +1,205 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#FFFDF7">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>HappyHome</title>
-<link rel="icon" type="image/png" href="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png">
-<link rel="apple-touch-icon" href="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png">
-<link rel="manifest" href="./manifest.json">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<style>
-:root {
-    --bg-cream: #FFFDF7;
-    --card-cream: #FFF8E7;
-    --accent-yellow: #FFD97D;
-    --accent-caramel: #F4A261;
-    --accent-pink: #FFCAD4;
-    --text-brown: #5C4B3B;
-    --text-light: #9E8C7A;
-    --border-soft: #F3E5C8;
-}
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-input, textarea, pre { user-select: text; }
-body {
-    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    background-color: var(--bg-cream);
-    color: var(--text-brown);
-    margin: 0;
-    padding: 12px 12px 70px 12px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-    #coverPage {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--bg-cream); z-index: 200; display: flex;
-    flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 20px; transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-#coverPage.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.cover-logo {
-    width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
-    border: 4px solid var(--accent-yellow); box-shadow: 0 8px 25px rgba(244, 162, 97, 0.25);
-    margin-bottom: 22px; animation: bounce 2s infinite ease-in-out;
-}
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-.cover-title { font-size: 2.2rem; color: var(--text-brown); margin: 0 0 8px 0; font-weight: bold; }
-.cover-subtitle { font-size: 0.95rem; color: var(--text-light); margin-bottom: 35px; }
-.cover-btn {
-    background: var(--accent-yellow); color: var(--text-brown); border: 2px solid var(--accent-caramel);
-    padding: 14px 36px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
-    box-shadow: 0 6px 18px rgba(255, 217, 125, 0.6);
-}
-header { text-align: center; padding: 8px 0 12px 0; }
-header h1 { margin: 0; font-size: 1.5rem; display: inline-flex; align-items: center; gap: 8px; }
-header h1 img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-yellow); }
-.search-box { position: relative; margin-bottom: 12px; }
-.search-box input {
-    width: 100%; padding: 10px 14px 10px 36px; border-radius: 18px;
-    border: 2px solid var(--border-soft); background: #FFFFFF; color: var(--text-brown);
-    font-size: 0.9rem; outline: none;
-}
-.search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
-.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: none; }
-.tabs::-webkit-scrollbar { display: none; }
-.tab-btn {
-    flex: 0 0 auto; padding: 6px 12px; border-radius: 14px;
-    border: 1.5px solid var(--border-soft); background: #FFFFFF; color: var(--text-brown);
-    font-weight: 600; font-size: 0.82rem; cursor: pointer;
-}
-.tab-btn.active { background: var(--accent-yellow); border-color: var(--accent-caramel); color: #4A3828; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#FFFDF7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>HappyHome</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png">
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-cream: #FFFDF7;
+            --card-cream: #FFF8E7;
+            --accent-yellow: #FFD97D;
+            --accent-caramel: #F4A261;
+            --accent-pink: #FFCAD4;
+            --text-brown: #5C4B3B;
+            --text-light: #9E8C7A;
+            --border-soft: #F3E5C8;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        input, textarea, pre { user-select: text; }
+        body {
+            font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-cream);
+            color: var(--text-brown);
+            margin: 0;
+            padding: 12px 12px 70px 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #coverPage {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-cream); z-index: 200; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        #coverPage.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .cover-logo {
+            width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--accent-yellow); box-shadow: 0 8px 25px rgba(244, 162, 97, 0.25);
+            margin-bottom: 22px; animation: bounce 2s infinite ease-in-out;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .cover-title { font-size: 2.2rem; color: var(--text-brown); margin: 0 0 8px 0; font-weight: bold; }
+        .cover-subtitle { font-size: 0.95rem; color: var(--text-light); margin-bottom: 35px; }
+        .cover-btn {
+            background: var(--accent-yellow); color: var(--text-brown); border: 2px solid var(--accent-caramel);
+            padding: 14px 36px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 6px 18px rgba(255, 217, 125, 0.6);
+        }
+        header { text-align: center; padding: 8px 0 12px 0; }
+        header h1 { margin: 0; font-size: 1.5rem; display: inline-flex; align-items: center; gap: 8px; }
+        header h1 img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-yellow); }
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-box input {
+            width: 100%; padding: 10px 14px 10px 36px; border-radius: 18px;
+            border: 2px solid var(--border-soft); background: #FFFFFF; color: var(--text-brown);
+            font-size: 0.9rem; outline: none;
+        }
+        .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
+        .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            flex: 0 0 auto; padding: 6px 12px; border-radius: 14px;
+            border: 1.5px solid var(--border-soft); background: #FFFFFF; color: var(--text-brown);
+            font-weight: 600; font-size: 0.82rem; cursor: pointer;
+        }
+        .tab-btn.active { background: var(--accent-yellow); border-color: var(--accent-caramel); color: #4A3828; }
 .sub-category-bar {
-    display: flex; flex-direction: column; gap: 6px; background: var(--card-cream);
-    padding: 10px; border-radius: 14px; border: 1.5px dashed var(--accent-caramel); margin-bottom: 12px;
-}
-.cat-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.cat-label { font-size: 0.75rem; font-weight: bold; color: var(--text-light); }
-.cat-chip { padding: 3px 8px; border-radius: 10px; background: #FFFFFF; border: 1px solid var(--border-soft); font-size: 0.75rem; cursor: pointer; }
-.cat-chip.active { background: var(--accent-pink); border-color: #F29CA3; font-weight: bold; }
-.cat-add-btn { padding: 1px 6px; border-radius: 8px; background: var(--accent-yellow); border: none; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
-.grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-@media (min-width: 500px) { .grid-container { grid-template-columns: repeat(5, 1fr); } }
-.list-container { display: flex; flex-direction: column; gap: 8px; }
-.square-card {
-    background: #FFFFFF; border: 1.5px solid var(--border-soft); border-radius: 16px;
-    padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; aspect-ratio: 1 / 1; box-shadow: 0 2px 6px rgba(92, 75, 59, 0.04);
-    cursor: pointer; position: relative;
-}
-.square-card:active { transform: scale(0.95); }
-.square-icon {
-    width: 32px; height: 32px; border-radius: 10px; background: var(--card-cream);
-    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-    margin-bottom: 4px; overflow: hidden; border: 1px solid var(--border-soft);
-}
-.square-icon img { width: 100%; height: 100%; object-fit: cover; }
-.square-title { font-size: 0.75rem; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.badge-pwd { position: absolute; top: 4px; right: 4px; font-size: 0.6rem; background: var(--card-cream); padding: 1px 3px; border-radius: 6px; }
-.add-card { background: var(--card-cream); border: 1.5px dashed var(--accent-caramel); color: var(--accent-caramel); }
-.add-card .plus { font-size: 1.5rem; line-height: 1; margin-bottom: 2px; }
-.add-card span { font-size: 0.7rem; font-weight: bold; }
-.file-card {
-    background: #FFFFFF; border: 1.2px solid var(--border-soft); border-radius: 12px;
-    padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 1px 4px rgba(92, 75, 59, 0.03); transition: transform 0.1s; position: relative;
-}
-.file-card.selected { background: #FFF3CD; border-color: #FFEEBA; }
-.file-card:active { transform: scale(0.98); }
-.file-info { flex: 1; overflow: hidden; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-.file-checkbox { width: 18px; height: 18px; accent-color: var(--accent-caramel); cursor: pointer; flex-shrink: 0; }
-.file-name { font-weight: bold; font-size: 0.88rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.file-tags { display: flex; gap: 4px; font-size: 0.7rem; color: var(--text-light); flex-wrap: wrap; }
-.file-tag { background: var(--card-cream); padding: 1px 6px; border-radius: 6px; }
+            display: flex; flex-direction: column; gap: 6px; background: var(--card-cream);
+            padding: 10px; border-radius: 14px; border: 1.5px dashed var(--accent-caramel); margin-bottom: 12px;
+        }
+        .cat-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .cat-label { font-size: 0.75rem; font-weight: bold; color: var(--text-light); }
+        .cat-chip { padding: 3px 8px; border-radius: 10px; background: #FFFFFF; border: 1px solid var(--border-soft); font-size: 0.75rem; cursor: pointer; }
+        .cat-chip.active { background: var(--accent-pink); border-color: #F29CA3; font-weight: bold; }
+        .cat-add-btn { padding: 1px 6px; border-radius: 8px; background: var(--accent-yellow); border: none; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
+        
+        /* 缩小网格：一排4~5个 */
+        .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        @media (min-width: 500px) { .grid-container { grid-template-columns: repeat(5, 1fr); } }
+        .list-container { display: flex; flex-direction: column; gap: 8px; }
+        
+        .square-card {
+            background: #FFFFFF; border: 1.5px solid var(--border-soft); border-radius: 16px;
+            padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; aspect-ratio: 1 / 1; box-shadow: 0 2px 6px rgba(92, 75, 59, 0.04);
+            cursor: pointer; position: relative;
+        }
+        .square-card:active { transform: scale(0.95); }
+        .square-icon {
+            width: 32px; height: 32px; border-radius: 10px; background: var(--card-cream);
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+            margin-bottom: 4px; overflow: hidden; border: 1px solid var(--border-soft);
+        }
+        .square-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .square-title { font-size: 0.75rem; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .badge-pwd { position: absolute; top: 4px; right: 4px; font-size: 0.6rem; background: var(--card-cream); padding: 1px 3px; border-radius: 6px; }
+        
+        .add-card { background: var(--card-cream); border: 1.5px dashed var(--accent-caramel); color: var(--accent-caramel); }
+        .add-card .plus { font-size: 1.5rem; line-height: 1; margin-bottom: 2px; }
+        .add-card span { font-size: 0.7rem; font-weight: bold; }
+        
+        /* 缩小世界书/美化等列表卡片 */
+        .file-card {
+            background: #FFFFFF; border: 1.2px solid var(--border-soft); border-radius: 12px;
+            padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 4px rgba(92, 75, 59, 0.03); transition: transform 0.1s; position: relative;
+        }
+        .file-card.selected { background: #FFF3CD; border-color: #FFEEBA; }
+        .file-card:active { transform: scale(0.98); }
+        .file-info { flex: 1; overflow: hidden; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .file-checkbox { width: 18px; height: 18px; accent-color: var(--accent-caramel); cursor: pointer; flex-shrink: 0; }
+        .file-name { font-weight: bold; font-size: 0.88rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-tags { display: flex; gap: 4px; font-size: 0.7rem; color: var(--text-light); flex-wrap: wrap; }
+        .file-tag { background: var(--card-cream); padding: 1px 6px; border-radius: 6px; }
 .batch-toolbar {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--card-cream); padding: 8px 12px; border-radius: 12px;
-    margin-bottom: 10px; border: 1px solid var(--border-soft); font-size: 0.82rem;
-}
-.batch-toolbar button { padding: 4px 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 0.78rem; }
-.batch-btn-sel { background: #FFFFFF; color: var(--text-brown); border: 1px solid var(--border-soft); }
-.batch-btn-move { background: var(--accent-yellow); color: #4A3828; }
-.batch-btn-del { background: #FFE5E5; color: #D9534F; }
-.modal-overlay {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(92, 75, 59, 0.4); backdrop-filter: blur(3px); z-index: 100;
-    align-items: center; justify-content: center; padding: 16px;
-}
-.modal-overlay.show { display: flex; }
-.modal-box {
-    background: var(--bg-cream); border: 2px solid var(--accent-yellow); border-radius: 20px;
-    width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 16px;
-}
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: bold; font-size: 1rem; }
-.close-btn { background: var(--card-cream); border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; }
-.form-group { margin-bottom: 10px; }
-.form-group label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 3px; }
-.form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.2px solid var(--border-soft);
-    background: #FFFFFF; color: var(--text-brown); font-size: 0.85rem; font-family: inherit;
-}
-.form-group textarea { min-height: 140px; resize: vertical; line-height: 1.4; }
-.btn-primary {
-    width: 100%; padding: 10px; border-radius: 12px; border: none;
-    background: var(--accent-yellow); color: #4A3828; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-top: 4px;
-}
-.btn-danger { background: #FFE5E5; color: #D9534F; margin-top: 6px; }
-.browser-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-.browser-btn {
-    padding: 9px 4px; border-radius: 12px; border: 1.2px solid var(--border-soft);
-    background: #FFFFFF; color: var(--text-brown); font-weight: bold; text-align: center;
-    text-decoration: none; display: block; font-size: 0.82rem; cursor: pointer;
-}
-.browser-btn:active { background: var(--accent-yellow); }
-.copy-info-box { background: var(--card-cream); padding: 8px; border-radius: 10px; font-size: 0.8rem; margin-bottom: 10px; word-break: break-all; }
-.mini-copy-btn { background: var(--accent-caramel); color: white; border: none; border-radius: 6px; padding: 2px 6px; font-size: 0.7rem; margin-left: 4px; cursor: pointer; }
-.hint-text { font-size: 0.72rem; color: var(--text-light); text-align: center; margin-bottom: 6px; }
-.asset-preview { width: 100%; min-height: 180px; border: 1.2px solid var(--border-soft); border-radius: 12px; background: #FFFFFF; overflow: hidden; }
-.asset-preview iframe { width: 100%; height: 300px; border: 0; display: block; background: white; }
-.asset-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px; margin: 0; max-height: 350px; overflow: auto; font-size: 11px; line-height: 1.5; color: var(--text-brown); }
-.font-preview { min-height: 140px; padding: 14px; border-radius: 12px; border: 1.2px dashed var(--accent-caramel); background: white; font-size: 22px; line-height: 1.6; overflow-wrap: anywhere; }
-.asset-actions { display: flex; gap: 6px; margin-top: 8px; }
-.asset-actions button { flex: 1; }
-.small-note { color: var(--text-light); font-size: 0.72rem; line-height: 1.4; margin: 4px 0 10px; }
-.input-copy-row { display:flex; align-items:center; gap:5px; }
-.input-copy-row input { flex:1; min-width:0; }
-.phone-icon-picker { width:52px; height:52px; border:1.2px dashed var(--accent-caramel); border-radius:12px; background:#fff; color:var(--accent-caramel); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; overflow:hidden; }
-.phone-icon-picker img { width:100%; height:100%; object-fit:cover; }
-.phone-icon-area { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:10px; }
-.phone-icon-area label { font-size:0.8rem; font-weight:bold; }
-.phone-type-bar { display:flex; gap:6px; margin:0 0 10px; }
-.phone-type-btn { flex:1; padding:8px; border:1.2px solid var(--border-soft); border-radius:12px; background:#fff; color:var(--text-brown); font-weight:bold; cursor:pointer; font-size:0.82rem; }
-.phone-type-btn.active { background:var(--accent-yellow); border-color:var(--accent-caramel); }
-.backup-panel { background:var(--card-cream); border:1.2px dashed var(--accent-caramel); border-radius:14px; padding:14px; margin-bottom:12px; }
-.backup-panel p { font-size:0.78rem; line-height:1.5; color:var(--text-light); }
-.hidden { display: none !important; }
-html, body { overscroll-behavior-x: none; }
-body { touch-action: pan-y; }
-@media (display-mode: standalone) { body { padding-top: max(12px, env(safe-area-inset-top)); } }
-</style>
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-cream); padding: 8px 12px; border-radius: 12px;
+            margin-bottom: 10px; border: 1px solid var(--border-soft); font-size: 0.82rem;
+        }
+        .batch-toolbar button { padding: 4px 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 0.78rem; }
+        .batch-btn-sel { background: #FFFFFF; color: var(--text-brown); border: 1px solid var(--border-soft); }
+        .batch-btn-move { background: var(--accent-yellow); color: #4A3828; }
+        .batch-btn-del { background: #FFE5E5; color: #D9534F; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(92, 75, 59, 0.4); backdrop-filter: blur(3px); z-index: 100;
+            align-items: center; justify-content: center; padding: 16px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--bg-cream); border: 2px solid var(--accent-yellow); border-radius: 20px;
+            width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 16px;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: bold; font-size: 1rem; }
+        .close-btn { background: var(--card-cream); border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 3px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.2px solid var(--border-soft);
+            background: #FFFFFF; color: var(--text-brown); font-size: 0.85rem; font-family: inherit;
+        }
+        .form-group textarea { min-height: 140px; resize: vertical; line-height: 1.4; }
+        .btn-primary {
+            width: 100%; padding: 10px; border-radius: 12px; border: none;
+            background: var(--accent-yellow); color: #4A3828; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-top: 4px;
+        }
+        .btn-danger { background: #FFE5E5; color: #D9534F; margin-top: 6px; }
+        .browser-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+        .browser-btn {
+            padding: 9px 4px; border-radius: 12px; border: 1.2px solid var(--border-soft);
+            background: #FFFFFF; color: var(--text-brown); font-weight: bold; text-align: center;
+            text-decoration: none; display: block; font-size: 0.82rem; cursor: pointer;
+        }
+        .browser-btn:active { background: var(--accent-yellow); }
+        .copy-info-box { background: var(--card-cream); padding: 8px; border-radius: 10px; font-size: 0.8rem; margin-bottom: 10px; word-break: break-all; }
+        .mini-copy-btn { background: var(--accent-caramel); color: white; border: none; border-radius: 6px; padding: 2px 6px; font-size: 0.7rem; margin-left: 4px; cursor: pointer; }
+        .hint-text { font-size: 0.72rem; color: var(--text-light); text-align: center; margin-bottom: 6px; }
+        .asset-preview { width: 100%; min-height: 180px; border: 1.2px solid var(--border-soft); border-radius: 12px; background: #FFFFFF; overflow: hidden; }
+        .asset-preview iframe { width: 100%; height: 300px; border: 0; display: block; background: white; }
+        .asset-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px; margin: 0; max-height: 350px; overflow: auto; font-size: 11px; line-height: 1.5; color: var(--text-brown); }
+        .font-preview { min-height: 140px; padding: 14px; border-radius: 12px; border: 1.2px dashed var(--accent-caramel); background: white; font-size: 22px; line-height: 1.6; overflow-wrap: anywhere; }
+        .asset-actions { display: flex; gap: 6px; margin-top: 8px; }
+        .asset-actions button { flex: 1; }
+        .small-note { color: var(--text-light); font-size: 0.72rem; line-height: 1.4; margin: 4px 0 10px; }
+        .input-copy-row { display:flex; align-items:center; gap:5px; }
+        .input-copy-row input { flex:1; min-width:0; }
+        .phone-icon-picker { width:52px; height:52px; border:1.2px dashed var(--accent-caramel); border-radius:12px; background:#fff; color:var(--accent-caramel); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; overflow:hidden; }
+        .phone-icon-picker img { width:100%; height:100%; object-fit:cover; }
+        .phone-icon-area { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:10px; }
+        .phone-icon-area label { font-size:0.8rem; font-weight:bold; }
+        .phone-type-bar { display:flex; gap:6px; margin:0 0 10px; }
+        .phone-type-btn { flex:1; padding:8px; border:1.2px solid var(--border-soft); border-radius:12px; background:#fff; color:var(--text-brown); font-weight:bold; cursor:pointer; font-size:0.82rem; }
+        .phone-type-btn.active { background:var(--accent-yellow); border-color:var(--accent-caramel); }
+        .backup-panel { background:var(--card-cream); border:1.2px dashed var(--accent-caramel); border-radius:14px; padding:14px; margin-bottom:12px; }
+        .backup-panel p { font-size:0.78rem; line-height:1.5; color:var(--text-light); }
+                /* ===== 新增：多选/长按/分类交互样式 ===== */
+        * { -webkit-touch-callout: none; }
+        .square-card.selected { outline: 2.5px solid var(--accent-caramel); background: #FFF3CD; }
+        .sel-mark { display: none; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-caramel); color: #fff; font-size: 0.65rem; align-items: center; justify-content: center; }
+        .square-card.selected .sel-mark { display: flex; }
+        .file-check { font-size: 1.15rem; color: var(--accent-caramel); flex-shrink: 0; }
+        .batch-toolbar { position: sticky; top: 0; z-index: 20; flex-wrap: wrap; gap: 6px; }
+        .batch-btns { display: flex; gap: 5px; flex-wrap: wrap; }
+        .cat-chip { padding: 5px 10px; font-size: 0.78rem; }
+        .cat-add-btn { padding: 4px 10px; }
+        
+        .hidden { display: none !important; }
+        html, body { overscroll-behavior-x: none; }
+        body { touch-action: pan-y; }
+        @media (display-mode: standalone) { body { padding-top: max(12px, env(safe-area-inset-top)); } }
+    </style>
+</head>
 <body>
     <div id="coverPage">
         <img src="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png" alt="Logo" class="cover-logo">
@@ -241,6 +260,7 @@ body { touch-action: pan-y; }
             <button class="btn-primary" onclick="saveApi()">保存 API 站子</button>
         </div>
     </div>
+
     <!-- 浏览器选择 -->
     <div class="modal-overlay" id="launchModal">
         <div class="modal-box">
@@ -340,9 +360,8 @@ body { touch-action: pan-y; }
             <button class="btn-primary btn-danger" onclick="deleteThemeAsset()">删除</button>
         </div>
     </div>
-
 <script>
-    async function enterApp() {
+        async function enterApp() {
             document.getElementById('coverPage').classList.add('hidden');
             try {
                 if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -381,13 +400,14 @@ body { touch-action: pan-y; }
         let currentFontFace = null;
         let themeEditorVisible = false;
 
+        // 多选批量操作状态
         let isBatchMode = false;
         let selectedIds = new Set();
 
         function saveDB() { localStorage.setItem('happyhome_db', JSON.stringify(db)); }
         function escapeHTML(value) {
             return String(value ?? '').replace(/[&<>"']/g, ch => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '"', "'": '&#39;'
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[ch]));
         }
 
@@ -413,63 +433,87 @@ body { touch-action: pan-y; }
             } catch (e) { return fallbackEmoji; }
         }
 
+        function el(tag, cls, html) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (html !== undefined) e.innerHTML = html;
+            return e;
+        }
+        function rerender() { const y = window.scrollY; renderMain(); window.scrollTo(0, y); }
+        function exitBatch() { isBatchMode = false; selectedIds.clear(); }
+
+        function countBy(section, key, val) {
+            const isFile = section === 'worldbook' || section === 'character';
+            const srcList = isFile ? db.files : db.themeAssets;
+            return srcList.filter(x => x.section === section && (val === '全部' || x[key] === val)).length;
+        }
+
+        // 分类栏：用 addEventListener，彻底解决点不动的问题
         function renderCategoryBar(section) {
             const cats = db.categories[section] || { authors: [], funcs: [] };
-            let html = `<div class="sub-category-bar">`;
-            html += `<div class="cat-row"><span class="cat-label">按作者：</span>`;
-            ['全部', ...(cats.authors || [])].forEach(au => {
-                html += `<span class="cat-chip ${selectedAuthor === au ? 'active' : ''}" onclick="setFilter('author', ${JSON.stringify(au)})">${escapeHTML(au)}</span>`;
+            const bar = el('div', 'sub-category-bar');
+            [['author', '按作者：', cats.authors || [], 'authors'], ['func', '按功能：', cats.funcs || [], 'funcs']].forEach(([type, label, arr, listKey]) => {
+                const row = el('div', 'cat-row');
+                row.appendChild(el('span', 'cat-label', label));
+                const cur = type === 'author' ? selectedAuthor : selectedFunc;
+                ['全部', ...arr].forEach(name => {
+                    const chip = el('span', 'cat-chip' + (cur === name ? ' active' : ''));
+                    chip.textContent = `${name} (${countBy(section, type, name)})`;
+                    chip.addEventListener('click', () => setFilter(type, name));
+                    row.appendChild(chip);
+                });
+                const add = el('button', 'cat-add-btn', '＋');
+                add.addEventListener('click', () => addCategory(listKey));
+                row.appendChild(add);
+                bar.appendChild(row);
             });
-            html += `<button class="cat-add-btn" onclick="addCategory('authors')">＋</button></div>`;
-            html += `<div class="cat-row"><span class="cat-label">按功能：</span>`;
-            ['全部', ...(cats.funcs || [])].forEach(fn => {
-                html += `<span class="cat-chip ${selectedFunc === fn ? 'active' : ''}" onclick="setFilter('func', ${JSON.stringify(fn)})">${escapeHTML(fn)}</span>`;
+            return bar;
+        }
+
+        function setFilter(type, val) {
+            if (type === 'author') selectedAuthor = val; else selectedFunc = val;
+            exitBatch(); renderMain();
+        }
+        function addCategory(type) {
+            const val = prompt(`请输入${type === 'authors' ? '新作者名称' : '新功能分类名称'}：`);
+            if (val && val.trim()) {
+                const list = db.categories[currentTab][type];
+                if (!list.includes(val.trim())) { list.push(val.trim()); saveDB(); renderMain(); }
+            }
+        }
+        function setPhoneType(type) { selectedPhoneType = type; exitBatch(); renderMain(); }
+
+        // 当前页面可见的项目（全选就选这些）
+        function getVisible(kw) {
+            const hit = s => (s || '').toLowerCase().includes(kw);
+            if (currentTab === 'phone') return db.phones.filter(p => (p.type || 'free') === selectedPhoneType && (hit(p.name) || hit(p.url)));
+            if (currentTab === 'api') return db.apis.filter(a => hit(a.name) || hit(a.url));
+            const catOk = x => x.section === currentTab && (selectedAuthor === '全部' || x.author === selectedAuthor) && (selectedFunc === '全部' || x.func === selectedFunc);
+            if (currentTab === 'worldbook' || currentTab === 'character') return db.files.filter(f => catOk(f) && (!kw || hit(f.name) || hit(f.content)));
+            return db.themeAssets.filter(a => catOk(a) && (!kw || hit(a.name)));
+        }
+
+        function makeBatchBar(items) {
+            const bar = el('div', 'batch-toolbar');
+            const allSel = items.length > 0 && items.every(i => selectedIds.has(i.id));
+            bar.appendChild(el('span', '', `已选 ${selectedIds.size} 项`));
+            const box = el('div', 'batch-btns');
+            const add = (cls, txt, fn) => { const b = el('button', cls, txt); b.addEventListener('click', fn); box.appendChild(b); };
+            add('batch-btn-sel', allSel ? '取消全选' : '全选', () => {
+                items.forEach(i => allSel ? selectedIds.delete(i.id) : selectedIds.add(i.id));
+                rerender();
             });
-            html += `<button class="cat-add-btn" onclick="addCategory('funcs')">＋</button></div></div>`;
-            return html;
+            if (currentTab !== 'api') add('batch-btn-move', '移动', batchMove);
+            add('batch-btn-del', '删除', batchDelete);
+            add('batch-btn-sel', '完成', () => { exitBatch(); rerender(); });
+            bar.appendChild(box);
+            return bar;
         }
 
         function renderMain() {
             const container = document.getElementById('mainContent');
             const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
             container.innerHTML = '';
-
-            if (currentTab === 'phone') {
-                container.innerHTML = `
-                    <div class="phone-type-bar">
-                        <button class="phone-type-btn ${selectedPhoneType === 'free' ? 'active' : ''}" onclick="setPhoneType('free')">📱 免费小手机</button>
-                        <button class="phone-type-btn ${selectedPhoneType === 'paid' ? 'active' : ''}" onclick="setPhoneType('paid')">💎 付费小手机</button>
-                    </div>`;
-                const grid = document.createElement('div');
-                grid.className = 'grid-container';
-                grid.innerHTML = `<div class="square-card add-card" onclick="openModal('phoneModal')"><div class="plus">＋</div><span>添加</span></div>`;
-                db.phones.filter(p => (p.type || 'free') === selectedPhoneType && ((p.name || '').toLowerCase().includes(keyword) || (p.url || '').toLowerCase().includes(keyword))).forEach(p => {
-                    grid.innerHTML += `
-                        <div class="square-card" onclick="openLaunchModal('phone', ${Number(p.id)})">
-                            ${p.pwd ? '<span class="badge-pwd">🔑</span>' : ''}
-                            <div class="square-icon">${resolveIcon(p, '📱')}</div>
-                            <div class="square-title">${escapeHTML(p.name)}</div>
-                        </div>`;
-                });
-                container.appendChild(grid);
-                return;
-            }
-
-            if (currentTab === 'api') {
-                const grid = document.createElement('div');
-                grid.className = 'grid-container';
-                grid.innerHTML = `<div class="square-card add-card" onclick="openModal('apiModal')"><div class="plus">＋</div><span>添加</span></div>`;
-                db.apis.filter(a => (a.name || '').toLowerCase().includes(keyword) || (a.url || '').toLowerCase().includes(keyword)).forEach(a => {
-                    grid.innerHTML += `
-                        <div class="square-card" onclick="openLaunchModal('api', ${Number(a.id)})">
-                            ${a.key ? '<span class="badge-pwd">🗝️</span>' : ''}
-                            <div class="square-icon">${resolveIcon(a, '🔌')}</div>
-                            <div class="square-title">${escapeHTML(a.name)}</div>
-                        </div>`;
-                });
-                container.appendChild(grid);
-                return;
-            }
 
             if (currentTab === 'backup') {
                 container.innerHTML = `
@@ -479,697 +523,583 @@ body { touch-action: pan-y; }
                         <button class="btn-primary" onclick="exportBackup()">导出完整备份文件</button>
                         <div class="form-group" style="margin-top:10px"><label>导入备份文件（JSON）</label><input type="file" id="backupInput" accept=".json,application/json"></div>
                         <button class="btn-primary" onclick="importBackup()">导入并恢复备份</button>
-                    </div>`;
+                        </div>`;
                 return;
             }
-
-            container.innerHTML = renderCategoryBar(currentTab);
-            if (currentTab === 'worldbook' || currentTab === 'character') {
-                renderWorldbookList(container, keyword);
-            } else {
-                renderThemeList(container, keyword, currentTab);
+            if (currentTab === 'phone') {
+                container.innerHTML = `
+                    <div class="phone-type-bar">
+                        <button class="phone-type-btn ${selectedPhoneType === 'free' ? 'active' : ''}" onclick="setPhoneType('free')">📱 免费小手机</button>
+                        <button class="phone-type-btn ${selectedPhoneType === 'paid' ? 'active' : ''}" onclick="setPhoneType('paid')">💎 付费小手机</button>
+                    </div>`;
+            } else if (currentTab !== 'api') {
+                container.appendChild(renderCategoryBar(currentTab));
             }
+            const items = getVisible(keyword);
+            if (isBatchMode) container.appendChild(makeBatchBar(items));
+            if (currentTab === 'phone' || currentTab === 'api') renderGrid(container, items);
+            else renderList(container, items);
         }
-    function getCurrentPageItemIds(){
-    const ids = [];
-    const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-    if(currentTab==="worldbook"||currentTab==="character"){
-        db.files.filter(f => {
-            if (f.section !== currentTab) return false;
-            if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
-            if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
-            if (keyword && !(f.name || '').toLowerCase().includes(keyword) && !(f.content || '').toLowerCase().includes(keyword)) return false;
-            return true;
-        }).forEach(f=>ids.push(f.id));
-    }else if(currentTab==="theme"||currentTab==="font"){
-        db.themeAssets.filter(asset => {
-            if (asset.section !== currentTab) return false;
-            if (selectedAuthor !== '全部' && asset.author !== selectedAuthor) return false;
-            if (selectedFunc !== '全部' && asset.func !== selectedFunc) return false;
-            if (keyword && !(asset.name || '').toLowerCase().includes(keyword)) return false;
-            return true;
-        }).forEach(a=>ids.push(a.id));
-    }
-    return ids;
-}
 
-function bindLongPress(element, longAction, clickAction, itemData) {
-    let isLong = false;
-    let timer = null;
-    const start = () => {
-        isLong = false;
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            isLong = true;
-            const op = prompt(`📋 文件操作\n输入数字选择：\n1=进入多选模式\n2=全选本页\n3=移动分类\n4=删除此项`, "1");
-            if(op === "1"){
-                toggleBatchMode();
-                toggleSelectId(itemData.id);
-            }else if(op === "2"){
-                const listItems = getCurrentPageItemIds();
-                listItems.forEach(id=>selectedIds.add(id));
-                renderMain();
-            }else if(op === "3"){
-                longAction();
-            }else if(op === "4"){
-                if(confirm("确认删除该条目？")){
-                    if(currentTab==="worldbook"||currentTab==="character"){
-                        db.files = db.files.filter(f=>f.id!==itemData.id);
-                    }else{
-                        db.themeAssets = db.themeAssets.filter(a=>a.id!==itemData.id);
-                    }
-                    saveDB();
-                    renderMain();
-                }
+        function renderGrid(container, items) {
+            const isPhone = currentTab === 'phone';
+            const grid = el('div', 'grid-container');
+            if (!isBatchMode) {
+                const add = el('div', 'square-card add-card', '<div class="plus">＋</div><span>添加</span>');
+                add.addEventListener('click', () => openModal(isPhone ? 'phoneModal' : 'apiModal'));
+                grid.appendChild(add);
             }
-        }, 550);
-    };
-    const cancel = () => clearTimeout(timer);
-    element.addEventListener('touchstart', start, { passive: true });
-    element.addEventListener('touchend', cancel);
-    element.addEventListener('touchmove', cancel);
-    element.addEventListener('mousedown', start);
-    element.addEventListener('mouseup', cancel);
-    element.addEventListener('mouseleave', cancel);
-    element.addEventListener('click', () => {
-        if (!isLong) clickAction();
-        isLong = false;
-    });
-}
+            items.forEach(it => {
+                const card = el('div', 'square-card' + (selectedIds.has(it.id) ? ' selected' : ''));
+                const badge = isPhone ? (it.pwd ? '<span class="badge-pwd">🔑</span>' : '') : (it.key ? '<span class="badge-pwd">🗝️</span>' : '');
+                card.innerHTML = `${badge}<span class="sel-mark">✓</span><div class="square-icon">${resolveIcon(it, isPhone ? '📱' : '🔌')}</div><div class="square-title">${escapeHTML(it.name)}</div>`;
+                bindLongPress(card, () => startBatch(it.id), () => {
+                    if (isBatchMode) toggleSelectId(it.id); else openLaunchModal(isPhone ? 'phone' : 'api', it.id);
+                });
+                grid.appendChild(card);
+            });
+            container.appendChild(grid);
+        }
 
-function renderWorldbookList(container, keyword) {
-    const list = document.createElement('div');
-    list.className = 'list-container';
-    const isCharacter = currentTab === 'character';
-    const sectionName = isCharacter ? '人设' : '世界书';
-
-    let toolbarHTML = `
-        <div class="batch-toolbar">
-            <div>
-                <button class="batch-btn-sel" onclick="toggleBatchMode()">${isBatchMode ? '退出多选' : '📋 多选操作'}</button>
-                ${isBatchMode ? `<span style="margin-left:6px">已选 ${selectedIds.size} 项</span>` : ''}
-            </div>`;
-    if (isBatchMode && selectedIds.size > 0) {
-        toolbarHTML += `
-            <div>
-                <button class="batch-btn-move" onclick="openBatchMoveModal()">移动分类</button>
-                <button class="batch-btn-del" onclick="batchDeleteFiles()">批量删除</button>
-            </div>`;
-    }
-    toolbarHTML += `</div>`;
-
-    list.innerHTML = toolbarHTML + `
-        <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
-            <span style="font-size:1.1rem;margin-right:6px;">＋</span>
-            <span>手写 / 导入${sectionName}</span>
-        </div>
-        <div class="hint-text">💡 长按文件卡片弹出操作菜单</div>`;
-
-    const filtered = db.files.filter(f => {
-        if (f.section !== currentTab) return false;
-        if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
-        if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
-        if (keyword && !(f.name || '').toLowerCase().includes(keyword) && !(f.content || '').toLowerCase().includes(keyword)) return false;
-        return true;
-    });
-
-    filtered.forEach(f => {
-        const card = document.createElement('div');
-        card.className = `file-card ${selectedIds.has(f.id) ? 'selected' : ''}`;
-        card.innerHTML = `
-            <div class="file-info">
-                ${isBatchMode ? `<input type="checkbox" class="file-checkbox" ${selectedIds.has(f.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectId(${f.id})">` : ''}
-                <div style="overflow:hidden">
-                    <div class="file-name">${isCharacter ? "👤" : "📄"} ${escapeHTML(f.name)}</div>
-                    <div class="file-tags">
-                        <span class="file-tag">✍️ ${escapeHTML(f.author)}</span>
-                        <span class="file-tag">🏷️ ${escapeHTML(f.func)}</span>
+        function renderList(container, items) {
+            const sec = currentTab;
+            const isFile = sec === 'worldbook' || sec === 'character';
+            const list = el('div', 'list-container');
+            if (!isBatchMode) {
+                const label = sec === 'character' ? '手写 / 导入人设' : sec === 'worldbook' ? '手写 / 导入世界书' : sec === 'font' ? '导入字体文件' : '导入美化文件';
+                const add = el('div', 'file-card add-card', `<span style="font-size:1.1rem;margin-right:6px;">＋</span><span>${label}</span>`);
+                add.style.cssText = 'justify-content:center;padding:12px;cursor:pointer;';
+                add.addEventListener('click', () => sec === 'character' ? openCharacterModal() : sec === 'worldbook' ? openImportModal() : openThemeImportModal(sec));
+                list.appendChild(add);
+                list.appendChild(el('div', 'hint-text', '💡 长按任意卡片：多选 / 全选 / 移动 / 删除'));
+            }
+            if (!items.length) list.appendChild(el('div', 'hint-text', '这个分类下还没有内容，点上面的＋导入吧～'));
+            items.forEach(it => {
+                const sel = selectedIds.has(it.id);
+                const card = el('div', 'file-card' + (sel ? ' selected' : ''));
+                const icon = isFile ? (sec === 'character' ? '👤' : '📄') : (it.kind === 'font' ? '🔤' : it.kind === 'css' ? '🎨' : '🌐');
+                card.innerHTML = `
+                    <div class="file-info">
+                        ${isBatchMode ? `<span class="file-check">${sel ? '☑' : '☐'}</span>` : ''}
+                        <div style="overflow:hidden">
+                            <div class="file-name">${icon} ${escapeHTML(it.name)}</div>
+                            <div class="file-tags"><span class="file-tag">✍️ ${escapeHTML(it.author)}</span><span class="file-tag">🏷️ ${escapeHTML(it.func)}</span></div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <span style="color:var(--accent-caramel);font-size:0.8rem;">编辑 ›</span>`;
-        
-        bindLongPress(card, () => openMoveCategoryModal(f.id), () => {
-            if (isBatchMode) { toggleSelectId(f.id); } else { openEditFile(f.id); }
-        }, {id:f.id});
-        list.appendChild(card);
-    });
-    container.appendChild(list);
-}
-
-function renderThemeList(container, keyword, section) {
-    const isFont = section === 'font';
-    const list = document.createElement('div');
-    list.className = 'list-container';
-
-    let toolbarHTML = `
-        <div class="batch-toolbar">
-            <div>
-                <button class="batch-btn-sel" onclick="toggleBatchMode()">${isBatchMode ? '退出多选' : '📋 多选操作'}</button>
-                ${isBatchMode ? `<span style="margin-left:6px">已选 ${selectedIds.size} 项</span>` : ''}
-            </div>`;
-    if (isBatchMode && selectedIds.size > 0) {
-        toolbarHTML += `
-            <div>
-                <button class="batch-btn-move" onclick="openBatchMoveModal()">移动分类</button>
-                <button class="batch-btn-del" onclick="batchDeleteFiles()">批量删除</button>
-            </div>`;
-    }
-    toolbarHTML += `</div>`;
-
-    list.innerHTML = toolbarHTML + `
-        <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="openThemeImportModal('${section}')">
-            <span style="font-size:1.1rem;margin-right:6px;">＋</span>
-            <span>导入${isFont ? '字体文件' : '美化文件'}</span>
-        </div>`;
-
-    db.themeAssets.filter(asset => {
-        if (asset.section !== section) return false;
-        if (selectedAuthor !== '全部' && asset.author !== selectedAuthor) return false;
-        if (selectedFunc !== '全部' && asset.func !== selectedFunc) return false;
-        if (keyword && !(asset.name || '').toLowerCase().includes(keyword)) return false;
-        return true;
-    }).forEach(asset => {
-        const card = document.createElement('div');
-        card.className = `file-card ${selectedIds.has(asset.id) ? 'selected' : ''}`;
-        const icon = asset.kind === 'font' ? '🔤' : asset.kind === 'css' ? '🎨' : '🌐';
-        card.innerHTML = `
-            <div class="file-info">
-                ${isBatchMode ? `<input type="checkbox" class="file-checkbox" ${selectedIds.has(asset.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectId('${asset.id}')">` : ''}
-                <div style="overflow:hidden">
-                    <div class="file-name">${icon} ${escapeHTML(asset.name)}</div>
-                    <div class="file-tags"><span class="file-tag">✍️ ${escapeHTML(asset.author)}</span><span class="file-tag">🏷️ ${escapeHTML(asset.func)}</span></div>
-                </div>
-            </div><span style="color:var(--accent-caramel);font-size:0.8rem;">预览 ›</span>`;
-        
-        bindLongPress(card, () => openMoveAssetCategoryModal(asset.id), () => {
-            if (isBatchMode) { toggleSelectId(asset.id); } else { openThemePreview(asset.id); }
-        }, {id:asset.id});
-        list.appendChild(card);
-    });
-    container.appendChild(list);
-}
-
-function toggleBatchMode() {
-    isBatchMode = !isBatchMode;
-    selectedIds.clear();
-    renderMain();
-}
-
-function toggleSelectId(id) {
-    if (selectedIds.has(id)) selectedIds.delete(id);
-    else selectedIds.add(id);
-    renderMain();
-}
-
-function batchDeleteFiles() {
-    if (!confirm(`确定要删除选中的 ${selectedIds.size} 项吗？`)) return;
-    if (currentTab === 'worldbook' || currentTab === 'character') {
-        db.files = db.files.filter(f => !selectedIds.has(f.id));
-    } else {
-        db.themeAssets = db.themeAssets.filter(a => !selectedIds.has(a.id));
-    }
-    saveDB();
-    selectedIds.clear();
-    isBatchMode = false;
-    renderMain();
-}
-
-function openBatchMoveModal() {
-    if (selectedIds.size === 0) return alert('请先勾选要移动的项目。');
-    const cats = db.categories[currentTab] || { authors: ['默认作者'], funcs: [] };
-    document.getElementById('batchMoveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-    document.getElementById('batchMoveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}">${escapeHTML(fn)}</option>`).join('');
-    openModal('batchMoveModal');
-}
-
-function confirmBatchMove() {
-    const author = document.getElementById('batchMoveAuthorSel').value;
-    const func = document.getElementById('batchMoveFuncSel').value;
-    if (currentTab === 'worldbook' || currentTab === 'character') {
-        db.files.forEach(f => { if (selectedIds.has(f.id)) { f.author = author; f.func = func; } });
-    } else {
-        db.themeAssets.forEach(a => { if (selectedIds.has(a.id)) { a.author = author; a.func = func; } });
-    }
-    saveDB();
-    selectedIds.clear();
-    isBatchMode = false;
-    closeModal('batchMoveModal');
-    renderMain();
-}
-
-function addCategory(type) {
-    const label = type === 'authors' ? '新作者名称' : '新功能分类名称';
-    const val = prompt(`请输入${label}：`);
-    if (val && val.trim()) {
-        const list = db.categories[currentTab][type];
-        if (!list.includes(val.trim())) { list.push(val.trim()); saveDB(); renderMain(); }
-    }
-}
-
-function setFilter(type, val) {
-    if (type === 'author') selectedAuthor = val;
-    if (type === 'func') selectedFunc = val;
-    renderMain();
-}
-
-function setPhoneType(type) { selectedPhoneType = type; renderMain(); }
-
-let phoneIconData = '';
-function openPhoneIconOptions() { document.getElementById('pIconOptions').classList.toggle('hidden'); }
-function setPhoneIconByUrl() {
-    const url = prompt('请输入图片 URL：', document.getElementById('pIcon').value || '');
-    if (url === null) return;
-    document.getElementById('pIcon').value = url.trim();
-    document.getElementById('pIconOptions').classList.add('hidden');
-    previewPhoneIconUrl();
-}
-function handlePhoneIconFile(input) {
-    const file = input.files && input.files[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = event => {
-        phoneIconData = event.target.result;
-        document.getElementById('pIcon').value = '';
-        document.getElementById('pIconPreview').innerHTML = `<img src="${phoneIconData}" alt="图标预览">`;
-    };
-    reader.readAsDataURL(file);
-}
-function previewPhoneIconUrl() {
-    const url = document.getElementById('pIcon').value.trim();
-    phoneIconData = '';
-    document.getElementById('pIconPreview').innerHTML = url ? `<img src="${escapeHTML(url)}" alt="预览" onerror="this.parentElement.textContent='＋'">` : '＋';
-}
-
-function savePhone() {
-    const name = document.getElementById('pName').value.trim();
-    let url = document.getElementById('pUrl').value.trim();
-    const icon = phoneIconData || document.getElementById('pIcon').value.trim();
-    const entry = document.getElementById('pEntry').value;
-    const pwd = document.getElementById('pPwd').value.trim();
-    const type = document.getElementById('pType').value || 'free';
-    if (!name || !url) return alert('请填写名称和链接');
-    if (!url.startsWith('http')) url = 'https://' + url;
-    db.phones.push({ id: Date.now(), name, url, icon, entry, pwd, type });
-    saveDB(); closeModal('phoneModal');
-    ['pName', 'pUrl', 'pIcon', 'pPwd'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('pEntry').value = '';
-    document.getElementById('pIconPreview').textContent = '＋';
-    phoneIconData = ''; renderMain();
-}
-
-function copyField(id) { const value = document.getElementById(id).value; if (value) copyText(value); }
-
-function saveApi() {
-    const name = document.getElementById('aName').value.trim();
-    let url = document.getElementById('aUrl').value.trim();
-    const email = document.getElementById('aEmail').value.trim();
-    const pwd = document.getElementById('aPwd').value.trim();
-    const baseUrl = document.getElementById('aBaseUrl').value.trim();
-    const key = document.getElementById('aKey').value.trim();
-    if (!name || !url) return alert('请填写名称和链接');
-    if (!url.startsWith('http')) url = 'https://' + url;
-    db.apis.push({ id: Date.now(), name, url, email, pwd, baseUrl, key });
-    saveDB(); closeModal('apiModal');
-    ['aName', 'aUrl', 'aEmail', 'aPwd', 'aBaseUrl', 'aKey'].forEach(id => document.getElementById(id).value = '');
-    renderMain();
-}
-
-function buildEternalIntent(rawUrl) {
-    try {
-        const target = new URL(rawUrl);
-        if (target.protocol !== 'http:' && target.protocol !== 'https:') return rawUrl;
-        const fallback = encodeURIComponent(target.href);
-        return `intent://${target.host}${target.pathname}${target.search}#Intent;scheme=${target.protocol.slice(0, -1)};package=com.sevensix.everlasting;S.browser_fallback_url=${fallback};end`;
-    } catch (e) { return rawUrl; }
-}
-
-function openLaunchModal(type, id) {
-    const item = type === 'phone' ? db.phones.find(x => x.id === id) : db.apis.find(x => x.id === id);
-    if (!item) return;
-    document.getElementById('launchTitle').innerText = item.name;
-    let detailsHtml = `<div>🔗 链接：${escapeHTML(item.url)}</div>`;
-    if (type === 'api') {
-        if (item.email) detailsHtml += `<div>📧 邮箱：${escapeHTML(item.email)}</div>`;
-        if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)}</div>`;
-        if (item.baseUrl) detailsHtml += `<div>🌐 Base URL：${escapeHTML(item.baseUrl)}</div>`;
-        if (item.key) detailsHtml += `<div>🗝️ Key：${escapeHTML(item.key)}</div>`;
-    } else {
-        if (item.entry) detailsHtml += `<div>进入方式：${escapeHTML(item.entry)}</div>`;
-        if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)}</div>`;
-    }
-    document.getElementById('launchDetails').innerHTML = detailsHtml;
-    const cleanUrl = item.url.replace(/^https?:\/\//, '');
-    const encUrl = encodeURIComponent(item.url);
-    document.getElementById('browserButtons').innerHTML = `
-        <a href="${escapeHTML(item.url)}" target="_blank" rel="noopener" class="browser-btn">🧭 默认浏览器</a>
-        <a href="${escapeHTML(buildEternalIntent(item.url))}" class="browser-btn">♾️ 永恒浏览器</a>
-        <a href="quark://${escapeHTML(cleanUrl)}" class="browser-btn">🐿️ 夸克</a>
-        <a href="mttbrowser://url=${encUrl}" class="browser-btn">🐧 QQ</a>
-        <a href="via://${escapeHTML(item.url)}" class="browser-btn">🔗 Via</a>
-        <a href="googlechrome://navigate?url=${encUrl}" class="browser-btn">🌐 Chrome</a>
-        <a href="microsoft-edge-https://${escapeHTML(cleanUrl)}" class="browser-btn">🌊 Edge</a>
-        <button class="browser-btn" style="grid-column:span 2;background:var(--card-cream);" onclick="copyText(${JSON.stringify(item.url)})">📋 复制链接</button>`;
-    document.getElementById('deleteItemBtn').onclick = () => {
-        if (confirm('确定要删除吗？')) {
-            if (type === 'phone') db.phones = db.phones.filter(x => x.id !== id);
-            else db.apis = db.apis.filter(x => x.id !== id);
-            saveDB(); closeModal('launchModal'); renderMain();
+                    ${isBatchMode ? '' : `<span style="color:var(--accent-caramel);font-size:0.8rem;">${isFile ? '编辑' : '预览'} ›</span>`}`;
+                bindLongPress(card, () => startBatch(it.id), () => {
+                    if (isBatchMode) toggleSelectId(it.id); else if (isFile) openEditFile(it.id); else openThemePreview(it.id);
+                });
+                list.appendChild(card);
+            });
+            container.appendChild(list);
         }
-    };
-    openModal('launchModal');
-}
 
-function copyText(txt) {
-    if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(() => alert('已复制！')).catch(() => alert('复制失败')); }
-}
+        // 长按：进入多选并选中当前项（已在多选里就切换选中）
+        function startBatch(id) {
+            if (isBatchMode) { toggleSelectId(id); return; }
+            isBatchMode = true; selectedIds.clear(); selectedIds.add(id);
+            if (navigator.vibrate) navigator.vibrate(20);
+            rerender();
+        }
+        function toggleSelectId(id) {
+            if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+            rerender();
+        }
 
-function openImportModal() {
-    const cats = db.categories.worldbook;
-    document.getElementById('impAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-    document.getElementById('impFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
-    document.getElementById('fileInput').value = '';
-    document.getElementById('manualWorldName').value = '';
-    document.getElementById('manualWorldContent').value = '';
-    openModal('importFileModal');
-}
+        function batchDelete() {
+            if (!selectedIds.size) return alert('请先选择要删除的项目');
+            if (!confirm(`确定删除选中的 ${selectedIds.size} 项吗？`)) return;
+            if (currentTab === 'phone') db.phones = db.phones.filter(x => !selectedIds.has(x.id));
+            else if (currentTab === 'api') db.apis = db.apis.filter(x => !selectedIds.has(x.id));
+            else if (currentTab === 'worldbook' || currentTab === 'character') db.files = db.files.filter(x => !selectedIds.has(x.id));
+            else {
+                const ids = [...selectedIds];
+                db.themeAssets = db.themeAssets.filter(x => !selectedIds.has(x.id));
+                ids.forEach(id => themeDBAction('delete', id).catch(() => {}));
+            }
+            saveDB(); exitBatch(); renderMain();
+        }
 
-async function parseDocxArrayBuffer(arrayBuffer) {
-    try { const result = await mammoth.extractRawText({ arrayBuffer }); return result.value || '(空文档)'; } catch (e) { return 'DOCX 解析失败'; }
-}
-async function readTextFile(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = () => reject(new Error('读取失败'));
-        reader.readAsText(file, 'UTF-8');
-    });
-}
-async function importContentFiles(fileList, section, author, func) {
-    for (const file of fileList) {
-        const lowerName = file.name.toLowerCase();
-        if (lowerName.endsWith('.zip')) {
+        function batchMove() {
+            if (!selectedIds.size) return alert('请先选择要移动的项目');
+            if (currentTab === 'phone') {
+                const to = selectedPhoneType === 'free' ? 'paid' : 'free';
+                if (!confirm(`把选中的 ${selectedIds.size} 个小手机移到「${to === 'paid' ? '付费' : '免费'}小手机」吗？`)) return;
+                db.phones.forEach(p => { if (selectedIds.has(p.id)) p.type = to; });
+                saveDB(); exitBatch(); renderMain(); return;
+            }
+            openBatchMoveModal();
+        }
+
+        function openBatchMoveModal() {
+            const cats = db.categories[currentTab] || { authors: ['默认作者'], funcs: [] };
+            document.getElementById('batchMoveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('batchMoveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}">${escapeHTML(fn)}</option>`).join('');
+            openModal('batchMoveModal');
+        }
+
+        function confirmBatchMove() {
+            const author = document.getElementById('batchMoveAuthorSel').value;
+            const func = document.getElementById('batchMoveFuncSel').value;
+            const target = (currentTab === 'worldbook' || currentTab === 'character') ? db.files : db.themeAssets;
+            target.forEach(x => { if (selectedIds.has(x.id)) { x.author = author; x.func = func; } });
+            saveDB(); exitBatch(); closeModal('batchMoveModal'); renderMain();
+        }
+
+        // 长按：用 pointer 事件，手机和电脑都稳定
+        let swallowClick = false;
+        function bindLongPress(node, longAction, clickAction) {
+            let timer = null, sx = 0, sy = 0;
+            const cancel = () => { clearTimeout(timer); timer = null; };
+            node.addEventListener('pointerdown', e => {
+                swallowClick = false; sx = e.clientX; sy = e.clientY; cancel();
+                timer = setTimeout(() => { timer = null; swallowClick = true; longAction(); }, 500);
+            });
+            node.addEventListener('pointermove', e => {
+                if (timer && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) cancel();
+            });
+            ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => node.addEventListener(t, cancel));
+            node.addEventListener('contextmenu', e => e.preventDefault());
+            node.addEventListener('click', () => { if (swallowClick) { swallowClick = false; return; } clickAction(); });
+        }
+
+        let phoneIconData = '';
+        function openPhoneIconOptions() { document.getElementById('pIconOptions').classList.toggle('hidden'); }
+        function setPhoneIconByUrl() {
+            const url = prompt('请输入图片 URL：', document.getElementById('pIcon').value || '');
+            if (url === null) return;
+            document.getElementById('pIcon').value = url.trim();
+            document.getElementById('pIconOptions').classList.add('hidden');
+            previewPhoneIconUrl();
+        }
+        function handlePhoneIconFile(input) {
+            const file = input.files && input.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                phoneIconData = event.target.result;
+                document.getElementById('pIcon').value = '';
+                document.getElementById('pIconPreview').innerHTML = `<img src="${phoneIconData}" alt="图标预览">`;
+            };
+            reader.readAsDataURL(file);
+        }
+        function previewPhoneIconUrl() {
+            const url = document.getElementById('pIcon').value.trim();
+            phoneIconData = '';
+            document.getElementById('pIconPreview').innerHTML = url ? `<img src="${escapeHTML(url)}" alt="预览" onerror="this.parentElement.textContent='＋'">` : '＋';
+        }
+
+        function savePhone() {
+            const name = document.getElementById('pName').value.trim();
+            let url = document.getElementById('pUrl').value.trim();
+            const icon = phoneIconData || document.getElementById('pIcon').value.trim();
+            const entry = document.getElementById('pEntry').value;
+            const pwd = document.getElementById('pPwd').value.trim();
+            const type = document.getElementById('pType').value || 'free';
+            if (!name || !url) return alert('请填写名称和链接');
+            if (!url.startsWith('http')) url = 'https://' + url;
+            db.phones.push({ id: Date.now(), name, url, icon, entry, pwd, type });
+            saveDB(); closeModal('phoneModal');
+            ['pName', 'pUrl', 'pIcon', 'pPwd'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('pEntry').value = '';
+            document.getElementById('pIconPreview').textContent = '＋';
+            phoneIconData = ''; renderMain();
+        }
+
+        function copyField(id) { const value = document.getElementById(id).value; if (value) copyText(value); }
+
+        function saveApi() {
+            const name = document.getElementById('aName').value.trim();
+            let url = document.getElementById('aUrl').value.trim();
+            const email = document.getElementById('aEmail').value.trim();
+            const pwd = document.getElementById('aPwd').value.trim();
+            const baseUrl = document.getElementById('aBaseUrl').value.trim();
+            const key = document.getElementById('aKey').value.trim();
+            if (!name || !url) return alert('请填写名称和链接');
+            if (!url.startsWith('http')) url = 'https://' + url;
+            db.apis.push({ id: Date.now(), name, url, email, pwd, baseUrl, key });
+            saveDB(); closeModal('apiModal');
+            ['aName', 'aUrl', 'aEmail', 'aPwd', 'aBaseUrl', 'aKey'].forEach(id => document.getElementById(id).value = '');
+            renderMain();
+        }
+
+        function buildEternalIntent(rawUrl) {
             try {
-                const zip = await JSZip.loadAsync(file);
-                for (const [relativePath, zipEntry] of Object.entries(zip.files)) {
-                    if (zipEntry.dir || relativePath.startsWith('__MACOSX')) continue;
-                    const cleanName = relativePath.split('/').pop();
-                    if (!cleanName) continue;
-                    let content = '';
-                    if (cleanName.toLowerCase().endsWith('.docx')) content = await parseDocxArrayBuffer(await zipEntry.async('arraybuffer'));
-                    else content = await zipEntry.async('string');
-                    db.files.push({ id: Date.now() + Math.random(), section, name: cleanName, author, func, content });
-                }
-            } catch (e) { alert('ZIP 解压失败'); }
-        } else {
-            const content = lowerName.endsWith('.docx') ? await parseDocxArrayBuffer(await file.arrayBuffer()) : await readTextFile(file);
-            db.files.push({ id: Date.now() + Math.random(), section, name: file.name, author, func, content });
+                const target = new URL(rawUrl);
+                if (target.protocol !== 'http:' && target.protocol !== 'https:') return rawUrl;
+                const fallback = encodeURIComponent(target.href);
+                return `intent://${target.host}${target.pathname}${target.search}#Intent;scheme=${target.protocol.slice(0, -1)};package=com.sevensix.everlasting;S.browser_fallback_url=${fallback};end`;
+            } catch (e) { return rawUrl; }
         }
-    }
-}
 
-async function handleFileImport() {
-    const files = document.getElementById('fileInput').files;
-    const author = document.getElementById('impAuthor').value;
-    const func = document.getElementById('impFunc').value;
-    const manualName = document.getElementById('manualWorldName').value.trim();
-    const manualContent = document.getElementById('manualWorldContent').value;
-    let added = false;
-    if (manualContent.trim()) { db.files.push({ id: Date.now() + Math.random(), section: 'worldbook', name: manualName || '手写世界书.txt', author, func, content: manualContent }); added = true; }
-    if (files.length) { await importContentFiles(files, 'worldbook', author, func); added = true; }
-    if (!added) return alert('请填写手写内容或选择文件。');
-    saveDB(); closeModal('importFileModal'); renderMain(); alert('导入完成！');
-}
+        function openLaunchModal(type, id) {
+            const item = type === 'phone' ? db.phones.find(x => x.id === id) : db.apis.find(x => x.id === id);
+            if (!item) return;
+            document.getElementById('launchTitle').innerText = item.name;
+            let detailsHtml = `<div>🔗 链接：${escapeHTML(item.url)}</div>`;
+            if (type === 'api') {
+                if (item.email) detailsHtml += `<div>📧 邮箱：${escapeHTML(item.email)}</div>`;
+                if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)}</div>`;
+                if (item.baseUrl) detailsHtml += `<div>🌐 Base URL：${escapeHTML(item.baseUrl)}</div>`;
+                if (item.key) detailsHtml += `<div>🗝️ Key：${escapeHTML(item.key)}</div>`;
+            } else {
+                if (item.entry) detailsHtml += `<div>进入方式：${escapeHTML(item.entry)}</div>`;
+                if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)}</div>`;
+            }
+            document.getElementById('launchDetails').innerHTML = detailsHtml;
+            const cleanUrl = item.url.replace(/^https?:\/\//, '');
+            const encUrl = encodeURIComponent(item.url);
+            document.getElementById('browserButtons').innerHTML = `
+                <a href="${escapeHTML(item.url)}" target="_blank" rel="noopener" class="browser-btn">🧭 默认浏览器</a>
+                <a href="${escapeHTML(buildEternalIntent(item.url))}" class="browser-btn">♾️ 永恒浏览器</a>
+                <a href="quark://${escapeHTML(cleanUrl)}" class="browser-btn">🐿️ 夸克</a>
+                <a href="mttbrowser://url=${encUrl}" class="browser-btn">🐧 QQ</a>
+                <a href="via://${escapeHTML(item.url)}" class="browser-btn">🔗 Via</a>
+                <a href="googlechrome://navigate?url=${encUrl}" class="browser-btn">🌐 Chrome</a>
+                <a href="microsoft-edge-https://${escapeHTML(cleanUrl)}" class="browser-btn">🌊 Edge</a>
+                <button class="browser-btn" style="grid-column:span 2;background:var(--card-cream);" data-u="${escapeHTML(item.url)}" onclick="copyText(this.dataset.u)">📋 复制链接</button>`;
+            document.getElementById('deleteItemBtn').onclick = () => {
+                if (confirm('确定要删除吗？')) {
+                    if (type === 'phone') db.phones = db.phones.filter(x => x.id !== id);
+                    else db.apis = db.apis.filter(x => x.id !== id);
+                    saveDB(); closeModal('launchModal'); renderMain();
+                }
+            };
+            openModal('launchModal');
+        }
 
-function openCharacterModal() {
-    const cats = db.categories.character;
-    document.getElementById('charAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-    document.getElementById('charFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
-    document.getElementById('charManualName').value = ''; document.getElementById('charManualContent').value = ''; document.getElementById('charFileInput').value = '';
-    openModal('characterModal');
-}
+        function copyText(txt) {
+            if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(() => alert('已复制！')).catch(() => alert('复制失败')); }
+        }
 
-async function handleCharacterImport() {
-    const files = document.getElementById('charFileInput').files;
-    const author = document.getElementById('charAuthor').value;
-    const func = document.getElementById('charFunc').value;
-    const manualName = document.getElementById('charManualName').value.trim();
-    const manualContent = document.getElementById('charManualContent').value;
-    let added = false;
-    if (manualContent.trim()) { db.files.push({ id: Date.now() + Math.random(), section: 'character', name: manualName || '手写人设.txt', author, func, content: manualContent }); added = true; }
-    if (files.length) { await importContentFiles(files, 'character', author, func); added = true; }
-    if (!added) return alert('请填写或选择文件。');
-    saveDB(); closeModal('characterModal'); renderMain(); alert('人设导入完成！');
-}
+        function openImportModal() {
+            const cats = db.categories.worldbook;
+            document.getElementById('impAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('impFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('manualWorldName').value = '';
+            document.getElementById('manualWorldContent').value = '';
+            openModal('importFileModal');
+        }
 
-function openMoveCategoryModal(id) {
-    const f = db.files.find(x => x.id === id);
-    if (!f) return;
-    movingFileId = id; movingAssetId = null;
-    const cats = db.categories[f.section] || db.categories.worldbook;
-    document.getElementById('moveFileName').innerText = `📄 ${f.name}`;
-    document.getElementById('moveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}" ${a === f.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
-    document.getElementById('moveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}" ${fn === f.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
-    openModal('moveCatModal');
-}
-
-function openMoveAssetCategoryModal(id) {
-    const asset = db.themeAssets.find(x => x.id === id);
-    if (!asset) return;
-    movingFileId = null; movingAssetId = id;
-    const cats = db.categories[asset.section];
-    document.getElementById('moveFileName').innerText = `📄 ${asset.name}`;
-    document.getElementById('moveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}" ${a === asset.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
-    document.getElementById('moveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}" ${fn === asset.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
-    openModal('moveCatModal');
-}
-
-function confirmMoveCategory() {
-    const author = document.getElementById('moveAuthorSel').value;
-    const func = document.getElementById('moveFuncSel').value;
-    if (movingAssetId !== null) {
-        const asset = db.themeAssets.find(x => x.id === movingAssetId);
-        if (asset) { asset.author = author; asset.func = func; }
-    } else {
-        const f = db.files.find(x => x.id === movingFileId);
-        if (f) { f.author = author; f.func = func; }
-    }
-    saveDB(); movingFileId = null; movingAssetId = null; closeModal('moveCatModal'); renderMain();
-}
-
-function openEditFile(id) {
-    const f = db.files.find(x => x.id === id);
-    if (!f) return;
-    currentEditingFileId = id;
-    document.getElementById('editFileName').value = f.name;
-    document.getElementById('editFileContent').value = f.content;
-    openModal('editFileModal');
-}
-
-function saveFileEdit() {
-    const f = db.files.find(x => x.id === currentEditingFileId);
-    if (f) { f.name = document.getElementById('editFileName').value.trim() || f.name; f.content = document.getElementById('editFileContent').value; saveDB(); closeModal('editFileModal'); renderMain(); }
-}
-
-async function copyCurrentFile() {
-    try { await navigator.clipboard.writeText(document.getElementById('editFileContent').value); alert('已复制'); } catch(e){}
-}
-
-function downloadCurrentFile() {
-    const f = db.files.find(x => x.id === currentEditingFileId);
-    if (!f) return;
-    downloadTextFile(f.name.replace(/\.docx$/i, '.txt'), document.getElementById('editFileContent').value);
-}
-
-function downloadTextFile(name, content) {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-function deleteCurrentFile() {
-    if (!confirm('确定删除吗？')) return;
-    db.files = db.files.filter(x => x.id !== currentEditingFileId);
-    saveDB(); closeModal('editFileModal'); renderMain();
-}
-
-function blobToDataURL(blob) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(blob);
-    });
-}
-function dataURLToBlob(dataURL) {
-    const parts = dataURL.split(',');
-    const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'application/octet-stream';
-    const binary = atob(parts[1] || '');
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return new Blob([bytes], { type: mime });
-}
-
-async function exportBackup() {
-    try {
-        const backup = { format: 'HappyHomeBackup', version: 1, db, assets: [] };
-        for (const asset of (db.themeAssets || [])) {
-            const stored = await themeDBAction('get', asset.id);
-            if (stored && stored.blob) {
-                backup.assets.push({ id: asset.id, name: stored.name || asset.name, type: stored.type || stored.blob.type, data: await blobToDataURL(stored.blob) });
+        async function parseDocxArrayBuffer(arrayBuffer) {
+            try { const result = await mammoth.extractRawText({ arrayBuffer }); return result.value || '(空文档)'; } catch (e) { return 'DOCX 解析失败'; }
+        }
+        async function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('读取失败'));
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+        async function importContentFiles(fileList, section, author, func) {
+            for (const file of fileList) {
+                const lowerName = file.name.toLowerCase();
+                if (lowerName.endsWith('.zip')) {
+                    try {
+                        const zip = await JSZip.loadAsync(file);
+                        for (const [relativePath, zipEntry] of Object.entries(zip.files)) {
+                            if (zipEntry.dir || relativePath.startsWith('__MACOSX')) continue;
+                            const cleanName = relativePath.split('/').pop();
+                            if (!cleanName) continue;
+                            let content = '';
+                            if (cleanName.toLowerCase().endsWith('.docx')) content = await parseDocxArrayBuffer(await zipEntry.async('arraybuffer'));
+                            else content = await zipEntry.async('string');
+                            db.files.push({ id: Date.now() + Math.random(), section, name: cleanName, author, func, content });
+                        }
+                    } catch (e) { alert('ZIP 解压失败'); }
+                } else {
+                    const content = lowerName.endsWith('.docx') ? await parseDocxArrayBuffer(await file.arrayBuffer()) : await readTextFile(file);
+                    db.files.push({ id: Date.now() + Math.random(), section, name: file.name, author, func, content });
+                }
             }
         }
-        const blob = new Blob([JSON.stringify(backup)], { type: 'application/json;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `HappyHome-备份.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-        alert('导出成功');
-    } catch(e) { alert('导出失败'); }
-                                                             }
-    async function importBackup() {
-    const input = document.getElementById('backupInput');
-    const file = input && input.files && input.files[0];
-    if (!file) return alert('请选择备份文件');
-    if (!confirm('导入将覆盖现有数据，确定继续吗？')) return;
-    try {
-        const backup = JSON.parse(await file.text());
-        db = backup.db; saveDB();
-        for (const item of (backup.assets || [])) {
-            await themeDBAction('put', item.id, { id: item.id, name: item.name, type: item.type, blob: dataURLToBlob(item.data) });
+
+        async function handleFileImport() {
+            const files = document.getElementById('fileInput').files;
+            const author = document.getElementById('impAuthor').value;
+            const func = document.getElementById('impFunc').value;
+            const manualName = document.getElementById('manualWorldName').value.trim();
+            const manualContent = document.getElementById('manualWorldContent').value;
+            let added = false;
+            if (manualContent.trim()) { db.files.push({ id: Date.now() + Math.random(), section: 'worldbook', name: manualName || '手写世界书.txt', author, func, content: manualContent }); added = true; }
+            if (files.length) { await importContentFiles(files, 'worldbook', author, func); added = true; }
+            if (!added) return alert('请填写手写内容或选择文件。');
+            saveDB(); closeModal('importFileModal'); renderMain(); alert('导入完成！');
         }
-        alert('恢复成功，即将刷新页面'); location.reload();
-    } catch(e) { alert('恢复失败'); }
-}
 
-const themeDBPromise = new Promise((resolve, reject) => {
-    if (!('indexedDB' in window)) return reject(new Error('不支持IndexedDB'));
-    const request = indexedDB.open('HappyHomeThemeFiles', 1);
-    request.onupgradeneeded = e => { const db = e.target.result; if (!db.objectStoreNames.contains('assets')) db.createObjectStore('assets', { keyPath: 'id' }); };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-});
+        function openCharacterModal() {
+            const cats = db.categories.character;
+            document.getElementById('charAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('charFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            document.getElementById('charManualName').value = ''; document.getElementById('charManualContent').value = ''; document.getElementById('charFileInput').value = '';
+            openModal('characterModal');
+        }
 
-async function themeDBAction(mode, id, value) {
-    const database = await themeDBPromise;
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction('assets', 'readwrite');
-        const store = transaction.objectStore('assets');
-        let request;
-        if (mode === 'put') request = store.put(value);
-        if (mode === 'get') request = store.get(id);
-        if (mode === 'delete') request = store.delete(id);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
+        async function handleCharacterImport() {
+            const files = document.getElementById('charFileInput').files;
+            const author = document.getElementById('charAuthor').value;
+            const func = document.getElementById('charFunc').value;
+            const manualName = document.getElementById('charManualName').value.trim();
+            const manualContent = document.getElementById('charManualContent').value;
+            let added = false;
+            if (manualContent.trim()) { db.files.push({ id: Date.now() + Math.random(), section: 'character', name: manualName || '手写人设.txt', author, func, content: manualContent }); added = true; }
+            if (files.length) { await importContentFiles(files, 'character', author, func); added = true; }
+            if (!added) return alert('请填写或选择文件。');
+            saveDB(); closeModal('characterModal'); renderMain(); alert('人设导入完成！');
+        }
 
-function getAssetKind(name) {
-    const ext = name.split('.').pop().toLowerCase();
-    if (['ttf', 'otf', 'woff', 'woff2'].includes(ext)) return 'font';
-    if (ext === 'css') return 'css';
-    if (['html', 'htm'].includes(ext)) return 'html';
-    if (ext === 'json') return 'json';
-    return null;
-}
+        function openMoveCategoryModal(id) {
+            const f = db.files.find(x => x.id === id);
+            if (!f) return;
+            movingFileId = id; movingAssetId = null;
+            const cats = db.categories[f.section] || db.categories.worldbook;
+            document.getElementById('moveFileName').innerText = `📄 ${f.name}`;
+            document.getElementById('moveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}" ${a === f.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
+            document.getElementById('moveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}" ${fn === f.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
+            openModal('moveCatModal');
+        }
 
-function openThemeImportModal(section) {
-    const cats = db.categories[section] || { authors: [], funcs: [] };
-    document.getElementById('themeImportTitle').innerText = section === 'font' ? '🔤 导入字体' : '🎀 导入美化';
-    document.getElementById('themeFileInput').value = '';
-    document.getElementById('themeImpAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-    document.getElementById('themeImpFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
-    openModal('themeImportModal');
-}
+        function openMoveAssetCategoryModal(id) {
+            const asset = db.themeAssets.find(x => x.id === id);
+            if (!asset) return;
+            movingFileId = null; movingAssetId = id;
+            const cats = db.categories[asset.section];
+            document.getElementById('moveFileName').innerText = `📄 ${asset.name}`;
+            document.getElementById('moveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}" ${a === asset.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
+            document.getElementById('moveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}" ${fn === asset.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
+            openModal('moveCatModal');
+        }
 
-async function handleThemeImport() {
-    const files = document.getElementById('themeFileInput').files;
-    if (!files.length) return alert('请选择文件');
-    const author = document.getElementById('themeImpAuthor').value;
-    const func = document.getElementById('themeImpFunc').value;
-    for (const file of files) {
-        const kind = getAssetKind(file.name);
-        if (!kind) continue;
-        const section = kind === 'font' ? 'font' : 'theme';
-        const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        let content = kind !== 'font' ? await readTextFile(file) : '';
-        await themeDBAction('put', id, { id, blob: file, name: file.name, type: file.type });
-        db.themeAssets.push({ id, name: file.name, section, author, func, kind, content });
-    }
-    saveDB(); closeModal('themeImportModal'); renderMain(); alert('导入完成');
-}
+        function confirmMoveCategory() {
+            const author = document.getElementById('moveAuthorSel').value;
+            const func = document.getElementById('moveFuncSel').value;
+            if (movingAssetId !== null) {
+                const asset = db.themeAssets.find(x => x.id === movingAssetId);
+                if (asset) { asset.author = author; asset.func = func; }
+            } else {
+                const f = db.files.find(x => x.id === movingFileId);
+                if (f) { f.author = author; f.func = func; }
+            }
+            saveDB(); movingFileId = null; movingAssetId = null; closeModal('moveCatModal'); renderMain();
+        }
 
-async function openThemePreview(id) {
-    const asset = db.themeAssets.find(x => x.id === id);
-    if (!asset) return;
-    currentThemeAssetId = id; themeEditorVisible = false;
-    document.getElementById('themeEditName').value = asset.name;
-    document.getElementById('themeEditContent').value = asset.content || '';
-    document.getElementById('themeTextEditor').classList.add('hidden');
-    document.getElementById('themeEditToggle').classList.toggle('hidden', asset.kind === 'font');
-    document.getElementById('themePreviewTitle').innerText = asset.name;
-    document.getElementById('themePreviewArea').innerHTML = '';
-    document.getElementById('fontSampleArea').classList.add('hidden');
-    document.getElementById('themePreviewHint').innerText = '';
-    if (currentFontFace) { try { document.fonts.delete(currentFontFace); } catch(e){} currentFontFace = null; }
-    if (currentFontObjectURL) { URL.revokeObjectURL(currentFontObjectURL); currentFontObjectURL = null; }
+        function openEditFile(id) {
+            const f = db.files.find(x => x.id === id);
+            if (!f) return;
+            currentEditingFileId = id;
+            document.getElementById('editFileName').value = f.name;
+            document.getElementById('editFileContent').value = f.content;
+            openModal('editFileModal');
+        }
 
-    if (asset.kind === 'font') {
-        const stored = await themeDBAction('get', id);
-        currentFontObjectURL = URL.createObjectURL(stored.blob);
-        const fontFamily = `Font_${id}`;
-        currentFontFace = new FontFace(fontFamily, `url("${currentFontObjectURL}")`);
-        await currentFontFace.load(); document.fonts.add(currentFontFace);
-        document.getElementById('fontSampleArea').classList.remove('hidden');
-        document.getElementById('fontPreview').style.fontFamily = `"${fontFamily}"`;
-    } else if (asset.kind === 'css') {
-        const frame = document.createElement('iframe');
-        frame.srcdoc = `<style>${asset.content}</style><h3>预览</h3>`;
-        document.getElementById('themePreviewArea').appendChild(frame);
-    } else if (asset.kind === 'html') {
-        const frame = document.createElement('iframe'); frame.srcdoc = asset.content;
-        document.getElementById('themePreviewArea').appendChild(frame);
-    }
-    openModal('themePreviewModal');
-}
+        function saveFileEdit() {const f = db.files.find(x => x.id === currentEditingFileId);
+            if (f) { f.name = document.getElementById('editFileName').value.trim() || f.name; f.content = document.getElementById('editFileContent').value; saveDB(); closeModal('editFileModal'); renderMain(); }
+        }
 
-function toggleThemeEditor() {
-    themeEditorVisible = !themeEditorVisible;
-    document.getElementById('themeTextEditor').classList.toggle('hidden', !themeEditorVisible);
-}
+        async function copyCurrentFile() {
+            try { await navigator.clipboard.writeText(document.getElementById('editFileContent').value); alert('已复制'); } catch(e){}
+        }
 
-async function saveThemeAsset() {
-    const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
-    if (!asset) return;
-    asset.name = document.getElementById('themeEditName').value.trim() || asset.name;
-    if (asset.kind !== 'font' && themeEditorVisible) {
-        asset.content = document.getElementById('themeEditContent').value;
-        const stored = await themeDBAction('get', asset.id);
-        if (stored) await themeDBAction('put', asset.id, { ...stored, blob: new Blob([asset.content]), name: asset.name });
-    }
-    saveDB(); renderMain(); alert('保存成功');
-}
+        function downloadCurrentFile() {
+            const f = db.files.find(x => x.id === currentEditingFileId);
+            if (!f) return;
+            downloadTextFile(f.name.replace(/\.docx$/i, '.txt'), document.getElementById('editFileContent').value);
+        }
 
-async function downloadThemeAsset() {
-    const stored = await themeDBAction('get', currentThemeAssetId);
-    if (!stored) return;
-    const url = URL.createObjectURL(stored.blob);
-    const a = document.createElement('a'); a.href = url; a.download = stored.name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
+        function downloadTextFile(name, content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        }
 
-async function deleteThemeAsset() {
-    if (!confirm('确定删除吗？')) return;
-    await themeDBAction('delete', currentThemeAssetId);
-    db.themeAssets = db.themeAssets.filter(x => x.id !== currentThemeAssetId);
-    saveDB(); closeModal('themePreviewModal'); renderMain();
-}
+        function deleteCurrentFile() {
+            if (!confirm('确定删除吗？')) return;
+            db.files = db.files.filter(x => x.id !== currentEditingFileId);
+            saveDB(); closeModal('editFileModal'); renderMain();
+        }
 
-function openModal(id) { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function blobToDataURL(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(blob);
+            });
+        }
+        function dataURLToBlob(dataURL) {
+            const parts = dataURL.split(',');
+            const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'application/octet-stream';
+            const binary = atob(parts[1] || '');
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return new Blob([bytes], { type: mime });
+        }
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
-});
+        async function exportBackup() {
+            try {
+                const backup = { format: 'HappyHomeBackup', version: 1, db, assets: [] };
+                for (const asset of (db.themeAssets || [])) {
+                    const stored = await themeDBAction('get', asset.id);
+                    if (stored && stored.blob) {
+                        backup.assets.push({ id: asset.id, name: stored.name || asset.name, type: stored.type || stored.blob.type, data: await blobToDataURL(stored.blob) });
+                    }
+                }
+                const blob = new Blob([JSON.stringify(backup)], { type: 'application/json;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `HappyHome-备份.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+                alert('导出成功');
+            } catch(e) { alert('导出失败'); }
+        }
 
-renderMain();
-</script>
+        async function importBackup() {
+            const input = document.getElementById('backupInput');
+            const file = input && input.files && input.files[0];
+            if (!file) return alert('请选择备份文件');
+            if (!confirm('导入将覆盖现有数据，确定继续吗？')) return;
+            try {
+                const backup = JSON.parse(await file.text());
+                db = backup.db; saveDB();
+                for (const item of (backup.assets || [])) {
+                    await themeDBAction('put', item.id, { id: item.id, name: item.name, type: item.type, blob: dataURLToBlob(item.data) });
+                }
+                alert('恢复成功，即将刷新页面'); location.reload();
+            } catch(e) { alert('恢复失败'); }
+        }
+
+        const themeDBPromise = new Promise((resolve, reject) => {
+            if (!('indexedDB' in window)) return reject(new Error('不支持IndexedDB'));
+            const request = indexedDB.open('HappyHomeThemeFiles', 1);
+            request.onupgradeneeded = e => { const db = e.target.result; if (!db.objectStoreNames.contains('assets')) db.createObjectStore('assets', { keyPath: 'id' }); };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        async function themeDBAction(mode, id, value) {
+            const database = await themeDBPromise;
+            return new Promise((resolve, reject) => {
+                const transaction = database.transaction('assets', 'readwrite');
+                const store = transaction.objectStore('assets');
+                let request;
+                if (mode === 'put') request = store.put(value);
+                if (mode === 'get') request = store.get(id);
+                if (mode === 'delete') request = store.delete(id);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function getAssetKind(name) {
+            const ext = name.split('.').pop().toLowerCase();
+            if (['ttf', 'otf', 'woff', 'woff2'].includes(ext)) return 'font';
+            if (ext === 'css') return 'css';
+            if (['html', 'htm'].includes(ext)) return 'html';
+            if (ext === 'json') return 'json';
+            return null;
+        }
+
+        function openThemeImportModal(section) {
+            const cats = db.categories[section] || { authors: [], funcs: [] };
+            document.getElementById('themeImportTitle').innerText = section === 'font' ? '🔤 导入字体' : '🎀 导入美化';
+            document.getElementById('themeFileInput').value = '';
+            document.getElementById('themeImpAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('themeImpFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            openModal('themeImportModal');
+        }
+
+        async function handleThemeImport() {
+            const files = document.getElementById('themeFileInput').files;
+            if (!files.length) return alert('请选择文件');
+            const author = document.getElementById('themeImpAuthor').value;
+            const func = document.getElementById('themeImpFunc').value;
+            for (const file of files) {
+                const kind = getAssetKind(file.name);
+                if (!kind) continue;
+                const section = kind === 'font' ? 'font' : 'theme';
+                const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                let content = kind !== 'font' ? await readTextFile(file) : '';
+                await themeDBAction('put', id, { id, blob: file, name: file.name, type: file.type });
+                db.themeAssets.push({ id, name: file.name, section, author, func, kind, content });
+            }
+            saveDB(); closeModal('themeImportModal'); renderMain(); alert('导入完成');
+        }
+
+        async function openThemePreview(id) {
+            const asset = db.themeAssets.find(x => x.id === id);
+            if (!asset) return;
+            currentThemeAssetId = id; themeEditorVisible = false;
+            document.getElementById('themeEditName').value = asset.name;
+            document.getElementById('themeEditContent').value = asset.content || '';
+            document.getElementById('themeTextEditor').classList.add('hidden');
+            document.getElementById('themeEditToggle').classList.toggle('hidden', asset.kind === 'font');
+            document.getElementById('themePreviewTitle').innerText = asset.name;
+            document.getElementById('themePreviewArea').innerHTML = '';
+            document.getElementById('fontSampleArea').classList.add('hidden');
+            document.getElementById('themePreviewHint').innerText = '';
+            if (currentFontFace) { try { document.fonts.delete(currentFontFace); } catch(e){} currentFontFace = null; }
+            if (currentFontObjectURL) { URL.revokeObjectURL(currentFontObjectURL); currentFontObjectURL = null; }
+
+            if (asset.kind === 'font') {
+                const stored = await themeDBAction('get', id);
+                currentFontObjectURL = URL.createObjectURL(stored.blob);
+                const fontFamily = `Font_${id}`;
+                currentFontFace = new FontFace(fontFamily, `url("${currentFontObjectURL}")`);
+                await currentFontFace.load(); document.fonts.add(currentFontFace);
+                document.getElementById('fontSampleArea').classList.remove('hidden');
+                document.getElementById('fontPreview').style.fontFamily = `"${fontFamily}"`;
+            } else if (asset.kind === 'css') {
+                const frame = document.createElement('iframe');
+                frame.srcdoc = `<style>${asset.content}</style><h3>预览</h3>`;
+                document.getElementById('themePreviewArea').appendChild(frame);
+            } else if (asset.kind === 'html') {
+                const frame = document.createElement('iframe'); frame.srcdoc = asset.content;
+                document.getElementById('themePreviewArea').appendChild(frame);
+            }
+            openModal('themePreviewModal');
+        }
+
+        function toggleThemeEditor() {
+            themeEditorVisible = !themeEditorVisible;
+            document.getElementById('themeTextEditor').classList.toggle('hidden', !themeEditorVisible);
+        }
+
+        async function saveThemeAsset() {
+            const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
+            if (!asset) return;
+            asset.name = document.getElementById('themeEditName').value.trim() || asset.name;
+            if (asset.kind !== 'font' && themeEditorVisible) {
+                asset.content = document.getElementById('themeEditContent').value;
+                const stored = await themeDBAction('get', asset.id);
+                if (stored) await themeDBAction('put', asset.id, { ...stored, blob: new Blob([asset.content]), name: asset.name });
+            }
+            saveDB(); renderMain(); alert('保存成功');
+        }
+
+        async function downloadThemeAsset() {
+            const stored = await themeDBAction('get', currentThemeAssetId);
+            if (!stored) return;
+            const url = URL.createObjectURL(stored.blob);
+            const a = document.createElement('a'); a.href = url; a.download = stored.name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        }
+
+        async function deleteThemeAsset() {
+            if (!confirm('确定删除吗？')) return;
+            await themeDBAction('delete', currentThemeAssetId);
+            db.themeAssets = db.themeAssets.filter(x => x.id !== currentThemeAssetId);
+            saveDB(); closeModal('themePreviewModal'); renderMain();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
+        });
+
+        renderMain();
+    </script>
 </body>
 </html>
+    
