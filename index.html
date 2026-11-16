@@ -13,7 +13,6 @@
     <link rel="manifest" href="./manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-
     <style>
         :root {
             --bg-cream: #FFFDF7;
@@ -25,10 +24,8 @@
             --text-light: #9E8C7A;
             --border-soft: #F3E5C8;
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         input, textarea, pre { user-select: text; }
-
         body {
             font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
             background-color: var(--bg-cream);
@@ -38,7 +35,6 @@
             max-width: 600px;
             margin: 0 auto;
         }
-
         #coverPage {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -68,11 +64,15 @@
             border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
             box-shadow: 0 6px 18px rgba(255, 217, 125, 0.6);
         }
-
-        header { text-align: center; padding: 12px 0 18px 0; }
+        header { text-align: center; padding: 12px 0 18px 0; position: relative; }
+        .back-btn-header {
+            position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            background: var(--card-cream); border: 1.5px solid var(--accent-caramel);
+            color: var(--text-brown); padding: 6px 12px; border-radius: 12px;
+            font-size: 0.85rem; font-weight: bold; cursor: pointer;
+        }
         header h1 { margin: 0; font-size: 1.8rem; display: inline-flex; align-items: center; gap: 10px; }
         header h1 img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-yellow); }
-
         .search-box { position: relative; margin-bottom: 16px; }
         .search-box input {
             width: 100%; padding: 12px 16px 12px 40px; border-radius: 20px;
@@ -80,7 +80,6 @@
             font-size: 0.95rem; outline: none;
         }
         .search-box::before { content: "🔍"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
-
         .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 14px; scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
@@ -89,7 +88,6 @@
             font-weight: 600; font-size: 0.9rem; cursor: pointer;
         }
         .tab-btn.active { background: var(--accent-yellow); border-color: var(--accent-caramel); color: #4A3828; }
-
         .sub-category-bar {
             display: flex; flex-direction: column; gap: 8px; background: var(--card-cream);
             padding: 12px; border-radius: 16px; border: 1.5px dashed var(--accent-caramel); margin-bottom: 16px;
@@ -99,41 +97,60 @@
         .cat-chip { padding: 4px 10px; border-radius: 12px; background: #FFFFFF; border: 1px solid var(--border-soft); font-size: 0.8rem; cursor: pointer; }
         .cat-chip.active { background: var(--accent-pink); border-color: #F29CA3; font-weight: bold; }
         .cat-add-btn { padding: 2px 8px; border-radius: 10px; background: var(--accent-yellow); border: none; font-weight: bold; cursor: pointer; }
-
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .list-container { display: flex; flex-direction: column; gap: 10px; }
-
+        
+        /* 调整网格尺寸，一排可放4-5个 */
+        .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        @media (min-width: 480px) {
+            .grid-container { grid-template-columns: repeat(5, 1fr); }
+        }
+        .list-container { display: flex; flex-direction: column; gap: 8px; }
+        
         .square-card {
-            background: #FFFFFF; border: 2px solid var(--border-soft); border-radius: 20px;
-            padding: 14px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; aspect-ratio: 1 / 1; box-shadow: 0 4px 10px rgba(92, 75, 59, 0.05);
+            background: #FFFFFF; border: 1.5px solid var(--border-soft); border-radius: 16px;
+            padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; aspect-ratio: 1 / 1; box-shadow: 0 2px 6px rgba(92, 75, 59, 0.04);
             cursor: pointer; position: relative;
         }
         .square-card:active { transform: scale(0.95); }
+        .square-card.selection-mode { border-color: var(--accent-caramel); background: #FFFBF0; }
+        .card-checkbox {
+            position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; accent-color: var(--accent-caramel); z-index: 2;
+        }
         .square-icon {
-            width: 46px; height: 46px; border-radius: 14px; background: var(--card-cream);
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-            margin-bottom: 8px; overflow: hidden; border: 1px solid var(--border-soft);
+            width: 34px; height: 34px; border-radius: 10px; background: var(--card-cream);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            margin-bottom: 4px; overflow: hidden; border: 1px solid var(--border-soft);
         }
         .square-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .square-title { font-size: 0.85rem; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .badge-pwd { position: absolute; top: 6px; right: 6px; font-size: 0.7rem; background: var(--card-cream); padding: 2px 5px; border-radius: 8px; }
-
-        .add-card { background: var(--card-cream); border: 2px dashed var(--accent-caramel); color: var(--accent-caramel); }
-        .add-card .plus { font-size: 2rem; line-height: 1; margin-bottom: 4px; }
-        .add-card span { font-size: 0.8rem; font-weight: bold; }
+        .square-title { font-size: 0.75rem; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .badge-pwd { position: absolute; top: 4px; right: 4px; font-size: 0.6rem; background: var(--card-cream); padding: 1px 3px; border-radius: 6px; }
+        
+        .add-card { background: var(--card-cream); border: 1.5px dashed var(--accent-caramel); color: var(--accent-caramel); }
+        .add-card .plus { font-size: 1.5rem; line-height: 1; margin-bottom: 2px; }
+        .add-card span { font-size: 0.7rem; font-weight: bold; }
+        
+        /* 批量操作工具栏 */
+        .batch-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--card-cream); border: 1.5px solid var(--accent-caramel);
+            padding: 8px 12px; border-radius: 14px; margin-bottom: 12px; font-size: 0.85rem; font-weight: bold;
+        }
+        .batch-actions { display: flex; gap: 6px; }
+        .batch-actions button { padding: 4px 10px; border-radius: 10px; border: none; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        .batch-del { background: #FFE5E5; color: #D9534F; }
+        .batch-move { background: var(--accent-yellow); color: var(--text-brown); }
 
         .file-card {
-            background: #FFFFFF; border: 1.5px solid var(--border-soft); border-radius: 16px;
-            padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 8px rgba(92, 75, 59, 0.04); transition: transform 0.1s;
+            background: #FFFFFF; border: 1.5px solid var(--border-soft); border-radius: 14px;
+            padding: 10px 12px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 6px rgba(92, 75, 59, 0.03); transition: transform 0.1s; position: relative;
         }
-        .file-card:active { transform: scale(0.98); background: var(--card-cream); }
+        .file-card.selection-mode { background: #FFFBF0; border-color: var(--accent-caramel); }
+        .file-card-left { display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden; }
         .file-info { flex: 1; overflow: hidden; cursor: pointer; }
-        .file-name { font-weight: bold; font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .file-tags { display: flex; gap: 6px; font-size: 0.75rem; color: var(--text-light); flex-wrap: wrap; }
-        .file-tag { background: var(--card-cream); padding: 2px 8px; border-radius: 8px; }
-
+        .file-name { font-weight: bold; font-size: 0.9rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-tags { display: flex; gap: 6px; font-size: 0.7rem; color: var(--text-light); flex-wrap: wrap; }
+        .file-tag { background: var(--card-cream); padding: 1px 6px; border-radius: 6px; }
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(92, 75, 59, 0.4); backdrop-filter: blur(3px); z-index: 100;
@@ -155,10 +172,9 @@
         .form-group textarea { min-height: 180px; resize: vertical; line-height: 1.5; }
         .btn-primary {
             width: 100%; padding: 12px; border-radius: 14px; border: none;
-            background: var(--accent-yellow); color: #4A3828; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 6px;
+            background: var(--accent-yellow); color: var(--text-brown); font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 6px;
         }
         .btn-danger { background: #FFE5E5; color: #D9534F; margin-top: 8px; }
-
         .browser-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .browser-btn {
             padding: 11px 6px; border-radius: 14px; border: 1.5px solid var(--border-soft);
@@ -169,8 +185,6 @@
         .copy-info-box { background: var(--card-cream); padding: 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 12px; word-break: break-all; }
         .mini-copy-btn { background: var(--accent-caramel); color: white; border: none; border-radius: 8px; padding: 3px 8px; font-size: 0.75rem; margin-left: 6px; cursor: pointer; }
         .hint-text { font-size: 0.75rem; color: var(--text-light); text-align: center; margin-bottom: 8px; }
-
-        /* 美化与字体专用样式 */
         .asset-preview {
             width: 100%; min-height: 220px; border: 1.5px solid var(--border-soft);
             border-radius: 16px; background: #FFFFFF; overflow: hidden;
@@ -195,7 +209,6 @@
         .phone-icon-picker img { width:100%; height:100%; object-fit:cover; }
         .phone-icon-area { display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin-bottom:12px; }
         .phone-icon-area label { font-size:.85rem; font-weight:bold; }
-
         .phone-type-bar { display:flex; gap:8px; margin:0 0 14px; }
         .phone-type-btn { flex:1; padding:10px; border:1.5px solid var(--border-soft); border-radius:14px; background:#fff; color:var(--text-brown); font-weight:bold; cursor:pointer; }
         .phone-type-btn.active { background:var(--accent-yellow); border-color:var(--accent-caramel); }
@@ -204,30 +217,25 @@
         .hidden { display: none !important; }
         html, body { overscroll-behavior-x: none; }
         body { touch-action: pan-y; }
-
-
         @media (display-mode: standalone) {
             body { padding-top: max(16px, env(safe-area-inset-top)); }
         }
     </style>
 </head>
 <body>
-
     <div id="coverPage">
         <img src="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png" alt="Logo" class="cover-logo">
         <h1 class="cover-title">HappyHome</h1>
         <p class="cover-subtitle">✨ 欢迎回家，开启你的专属温馨小窝 ✨</p>
         <button class="cover-btn" onclick="enterApp()">点击进入 🐾</button>
     </div>
-
     <header>
+        <button class="back-btn-header hidden" id="backBtnHeader" onclick="handleHeaderBack()">◀ 返回</button>
         <h1><img src="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png" alt="logo"> HappyHome</h1>
     </header>
-
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="搜索小手机、API、世界书、人设、美化、字体..." oninput="renderMain()">
     </div>
-
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('phone', this)">📱 小手机</button>
         <button class="tab-btn" onclick="switchTab('api', this)">🔌 API站子</button>
@@ -235,9 +243,8 @@
         <button class="tab-btn" onclick="switchTab('character', this)">👤 人设</button>
         <button class="tab-btn" onclick="switchTab('theme', this)">🎀 美化</button>
         <button class="tab-btn" onclick="switchTab('font', this)">🔤 字体</button>
-            <button class="tab-btn" onclick="switchTab('backup', this)">🗂️ 备份</button>
+        <button class="tab-btn" onclick="switchTab('backup', this)">🗂️ 备份</button>
     </div>
-
     <div id="mainContent"></div>
 
     <!-- 小手机 -->
@@ -256,6 +263,7 @@
             </div>
             <div class="form-group"><label>名称</label><input type="text" id="pName" placeholder="例如：小手机一号"></div>
             <div class="form-group"><label>链接</label><input type="url" id="pUrl" placeholder="https://..."></div>
+            <div class="form-group"><label>类型</label><select id="pType"><option value="free">免费小手机</option><option value="paid">付费小手机</option></select></div>
             <div class="form-group"><label>进入方式</label><select id="pEntry"><option value="">请选择（可选）</option><option value="邮箱">邮箱</option><option value="QQ">QQ</option><option value="DC">DC</option></select></div>
             <div class="form-group"><label>密码</label><input type="text" id="pPwd" placeholder="进入密码（可选）"></div>
             <button class="btn-primary" onclick="savePhone()">保存到 HappyHome</button>
@@ -284,7 +292,7 @@
             <div class="browser-grid" id="browserButtons"></div>
             <button class="btn-primary btn-danger" id="deleteItemBtn">删除此卡片</button>
         </div>
-    </div></div>
+    </div>
 
     <!-- 世界书专用导入 -->
     <div class="modal-overlay" id="importFileModal">
@@ -335,6 +343,16 @@
         </div>
     </div>
 
+    <!-- 批量移动分类弹窗 -->
+    <div class="modal-overlay" id="batchMoveModal">
+        <div class="modal-box">
+            <div class="modal-header"><span>🏷️ 批量移动分类</span><button class="close-btn" onclick="closeModal('batchMoveModal')">✕</button></div>
+            <div class="form-group"><label>目标作者分类</label><select id="batchAuthorSel"></select></div>
+            <div class="form-group"><label>目标功能分类</label><select id="batchFuncSel"></select></div>
+            <button class="btn-primary" onclick="confirmBatchMove()">确认批量移动</button>
+        </div>
+    </div>
+
     <!-- 美化/字体专用导入 -->
     <div class="modal-overlay" id="themeImportModal">
         <div class="modal-box">
@@ -348,7 +366,7 @@
                 <label>选择文件</label>
                 <input type="file" id="themeFileInput" multiple accept=".css,.html,.htm,.json,.ttf,.otf,.woff,.woff2">
             </div>
-            <p class="small-note">美化支持 CSS、HTML、JSON；字体支持 TTF、OTF、WOFF、WOFF2。字体文件会单独保存，不会被当作文本读取。</p>
+            <p class="small-note">美化支持 CSS、HTML、JSON；字体支持 TTF、OTF、WOFF、WOFF2。</p>
             <button class="btn-primary" onclick="handleThemeImport()">确认导入</button>
         </div>
     </div>
@@ -361,24 +379,18 @@
                 <button class="close-btn" onclick="closeModal('themePreviewModal')">✕</button>
             </div>
             <div class="form-group"><label>文件名称</label><input id="themeEditName" type="text"></div>
-
             <div id="themeTextEditor" class="form-group hidden">
                 <label>文件内容</label>
                 <textarea id="themeEditContent" spellcheck="false"></textarea>
             </div>
-<div id="themePreviewArea" class="asset-preview"></div>
-
+            <div id="themePreviewArea" class="asset-preview"></div>
             <div id="fontSampleArea" class="hidden">
                 <div class="form-group" style="margin-top:12px;">
                     <label>自定义预览文字</label>
-                    <textarea id="fontSampleText" rows="3">今天也要开心呀 ♡
-HappyHome · Hello World
-abcdefghijklmnopqrstuvwxyz
-0123456789</textarea>
+                    <textarea id="fontSampleText" rows="3">今天也要开心呀 ♡HappyHome · Hello Worldabcdefghijklmnopqrstuvwxyz0123456789</textarea>
                 </div>
                 <div id="fontPreview" class="font-preview">今天也要开心呀 ♡</div>
             </div>
-
             <p id="themePreviewHint" class="small-note"></p>
             <button class="btn-primary" id="themeEditToggle" onclick="toggleThemeEditor()">编辑文件内容</button>
             <button class="btn-primary" onclick="saveThemeAsset()">保存修改</button>
@@ -386,27 +398,84 @@ abcdefghijklmnopqrstuvwxyz
             <button class="btn-primary btn-danger" onclick="deleteThemeAsset()">删除此文件</button>
         </div>
     </div>
+    <script>
+        /* 状态管理：页面路由历史栈（用于侧滑边缘返回和左上角返回按钮） */
+        let navigationStack = ['main'];
+        
+        function updateHeaderBackBtn() {
+            const btn = document.getElementById('backBtnHeader');
+            if (navigationStack.length > 1) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
 
-<script>
-/* 全屏入口 */
+        function pushState(stateName) {
+            if (navigationStack[navigationStack.length - 1] !== stateName) {
+                navigationStack.push(stateName);
+            }
+            updateHeaderBackBtn();
+        }
+
+        function handleHeaderBack() {
+            if (navigationStack.length > 1) {
+                navigationStack.pop();
+                const currentState = navigationStack[navigationStack.length - 1];
+                executeStateBack(currentState);
+            }
+            updateHeaderBackBtn();
+        }
+
+        function executeStateBack(state) {
+            const openModals = document.querySelectorAll('.modal-overlay.show');
+            if (openModals.length > 0) {
+                openModals.forEach(m => m.classList.remove('show'));
+                return;
+            }
+            if (isSelectionMode) {
+                toggleSelectionMode();
+                return;
+            }
+            if (currentTab !== 'phone') {
+                currentTab = 'phone';
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.tab-btn').classList.add('active');
+                renderMain();
+            }
+        }
+
+        // 手机屏幕侧滑边缘返回手势监听
+        let touchStartX = 0;
+        let touchStartY = 0;
+        window.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, {passive: true});
+
+        window.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = Math.abs(touchEndY - touchStartY);
+            if (touchStartX < 40 && diffX > 70 && diffY < 50) {
+                handleHeaderBack();
+            }
+        }, {passive: true});
+
         async function enterApp() {
             document.getElementById('coverPage').classList.add('hidden');
-
-            // 浏览器仅允许在用户主动操作时请求全屏
+            pushState('app_home');
             try {
                 if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                     await document.documentElement.requestFullscreen();
                 }
-            } catch (e) {
-                console.log('当前浏览器不支持网页全屏，继续正常使用。');
-            }
+            } catch (e) {}
         }
 
-        /* 浏览器的系统边缘返回手势由系统接管，网页无法跨浏览器可靠拦截。 */
         document.documentElement.style.overscrollBehaviorX = 'none';
         document.body.style.overscrollBehaviorX = 'none';
 
-        /* 数据初始化：兼容原有 HappyHome 数据 */
         let db = JSON.parse(localStorage.getItem('happyhome_db')) || {
             phones: [],
             apis: [],
@@ -418,7 +487,6 @@ abcdefghijklmnopqrstuvwxyz
                 font: { authors: ['默认作者'], funcs: ['手写体', '可爱体'] }
             }
         };
-
         db.phones ||= [];
         db.apis ||= [];
         db.files ||= [];
@@ -427,8 +495,6 @@ abcdefghijklmnopqrstuvwxyz
         db.categories.worldbook ||= { authors: ['默认作者'], funcs: ['通用设定', '文风增强'] };
         db.categories.theme ||= { authors: ['默认作者'], funcs: ['气泡美化', '状态栏'] };
         db.categories.font ||= { authors: ['默认作者'], funcs: ['手写体', '可爱体'] };
-
-        // 美化与字体元数据独立保存，不混入世界书文件
         db.themeAssets ||= [];
 
         let currentTab = 'phone';
@@ -445,27 +511,31 @@ abcdefghijklmnopqrstuvwxyz
         let themeEditorVisible = false;
         let pressTimer = null;
 
+        /* 批量多选状态 */
+        let isSelectionMode = false;
+        let selectedIds = new Set();
+
         function saveDB() {
             localStorage.setItem('happyhome_db', JSON.stringify(db));
         }
-
         function escapeHTML(value) {
             return String(value ?? '').replace(/[&<>"']/g, ch => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;',
                 '"': '&quot;', "'": '&#39;'
             }[ch]));
         }
-
         function switchTab(tab, btnEl) {
             currentTab = tab;
             selectedAuthor = '全部';
             selectedFunc = '全部';
             selectedPhoneType = 'free';
+            isSelectionMode = false;
+            selectedIds.clear();
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btnEl.classList.add('active');
+            pushState('tab_' + tab);
             renderMain();
         }
-
         function resolveIcon(item, fallbackEmoji) {
             if (item.icon && item.icon.trim() !== '') {
                 return `<img src="${escapeHTML(item.icon.trim())}" onerror="this.parentElement.innerHTML='${fallbackEmoji}'">`;
@@ -477,47 +547,138 @@ abcdefghijklmnopqrstuvwxyz
                 return fallbackEmoji;
             }
         }
-
         function renderCategoryBar(section) {
-            const cats = db.categories[section];
+            const cats = db.categories[section] || { authors: [], funcs: [] };
             let html = `<div class="sub-category-bar">`;
-
             html += `<div class="cat-row"><span class="cat-label">按作者：</span>`;
-            ['全部', ...cats.authors].forEach(au => {
+            ['全部', ...(cats.authors || [])].forEach(au => {
                 html += `<span class="cat-chip ${selectedAuthor === au ? 'active' : ''}" onclick="setFilter('author', ${JSON.stringify(au)})">${escapeHTML(au)}</span>`;
             });
             html += `<button class="cat-add-btn" onclick="addCategory('authors')">＋</button></div>`;
-
             html += `<div class="cat-row"><span class="cat-label">按功能：</span>`;
-            ['全部', ...cats.funcs].forEach(fn => {
+            ['全部', ...(cats.funcs || [])].forEach(fn => {
                 html += `<span class="cat-chip ${selectedFunc === fn ? 'active' : ''}" onclick="setFilter('func', ${JSON.stringify(fn)})">${escapeHTML(fn)}</span>`;
             });
             html += `<button class="cat-add-btn" onclick="addCategory('funcs')">＋</button></div></div>`;
-
             return html;
+        }
+
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            selectedIds.clear();
+            renderMain();
+        }
+
+        function toggleSelectAll(totalCount) {
+            if (selectedIds.size === totalCount) {
+                selectedIds.clear();
+            } else {
+                if (currentTab === 'phone') {
+                    db.phones.filter(p => (p.type || 'free') === selectedPhoneType).forEach(x => selectedIds.add(x.id));
+                } else if (currentTab === 'api') {
+                    db.apis.forEach(x => selectedIds.add(x.id));
+                } else if (currentTab === 'worldbook' || currentTab === 'character') {
+                    db.files.filter(f => f.section === currentTab && (selectedAuthor === '全部' || f.author === selectedAuthor) && (selectedFunc === '全部' || f.func === selectedFunc)).forEach(x => selectedIds.add(x.id));
+                } else {
+                    db.themeAssets.filter(asset => asset.section === currentTab && (selectedAuthor === '全部' || asset.author === selectedAuthor) && (selectedFunc === '全部' || asset.func === selectedFunc)).forEach(x => selectedIds.add(x.id));
+                }
+            }
+            renderMain();
+        }
+
+        function batchDelete() {
+            if (selectedIds.size === 0) return alert('请先勾选要删除的项！');
+            if (!confirm(`确定要删除选中的 ${selectedIds.size} 项吗？`)) return;
+            if (currentTab === 'phone') {
+                db.phones = db.phones.filter(x => !selectedIds.has(x.id));
+            } else if (currentTab === 'api') {
+                db.apis = db.apis.filter(x => !selectedIds.has(x.id));
+            } else if (currentTab === 'worldbook' || currentTab === 'character') {
+                db.files = db.files.filter(x => !selectedIds.has(x.id));
+            } else {
+                db.themeAssets = db.themeAssets.filter(x => !selectedIds.has(x.id));
+            }
+            saveDB();
+            isSelectionMode = false;
+            selectedIds.clear();
+            renderMain();
+        }
+
+        function openBatchMoveModal() {
+            if (selectedIds.size === 0) return alert('请先勾选要移动的项！');
+            if (currentTab === 'phone' || currentTab === 'api') return alert('小手机和API暂不支持分类移动。');
+            const cats = db.categories[currentTab];
+            document.getElementById('batchAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('batchFuncSel').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            openModal('batchMoveModal');
+        }
+
+        function confirmBatchMove() {
+            const author = document.getElementById('batchAuthorSel').value;
+            const func = document.getElementById('batchFuncSel').value;
+            if (currentTab === 'worldbook' || currentTab === 'character') {
+                db.files.forEach(f => {
+                    if (selectedIds.has(f.id)) {
+                        f.author = author;
+                        f.func = func;
+                    }
+                });
+            } else {
+                db.themeAssets.forEach(asset => {
+                    if (selectedIds.has(asset.id)) {
+                        asset.author = author;
+                        asset.func = func;
+                    }
+                });
+            }
+            saveDB();
+            closeModal('batchMoveModal');
+            isSelectionMode = false;
+            selectedIds.clear();
+            renderMain();
+        }
+
+        function renderBatchToolbar(totalCount) {
+            return `
+                <div class="batch-toolbar">
+                    <div>
+                        <input type="checkbox" id="selectAllBox" ${selectedIds.size === totalCount && totalCount > 0 ? 'checked' : ''} onchange="toggleSelectAll(${totalCount})">
+                        <label for="selectAllBox" style="margin-left:4px;cursor:pointer;">全选 (已选 ${selectedIds.size})</label>
+                    </div>
+                    <div class="batch-actions">
+                        <button class="batch-move" onclick="openBatchMoveModal()">移动分类</button>
+                        <button class="batch-del" onclick="batchDelete()">删除选中</button>
+                        <button style="background:#fff;border:1px solid var(--border-soft);border-radius:10px;padding:4px 8px;cursor:pointer;" onclick="toggleSelectionMode()">取消</button>
+                    </div>
+                </div>`;
         }
 
         function renderMain() {
             const container = document.getElementById('mainContent');
             const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
             container.innerHTML = '';
-
+            
             if (currentTab === 'phone') {
                 container.innerHTML = `
                     <div class="phone-type-bar">
                         <button class="phone-type-btn ${selectedPhoneType === 'free' ? 'active' : ''}" onclick="setPhoneType('free')">📱 免费小手机</button>
                         <button class="phone-type-btn ${selectedPhoneType === 'paid' ? 'active' : ''}" onclick="setPhoneType('paid')">💎 付费小手机</button>
                     </div>`;
+                const filteredPhones = db.phones.filter(p => (p.type || 'free') === selectedPhoneType && ((p.name || '').toLowerCase().includes(keyword) || (p.url || '').toLowerCase().includes(keyword)));
+                
+                let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button class="mini-copy-btn" onclick="toggleSelectionMode()">${isSelectionMode ? '退出多选' : '📁 批量管理'}</button></div>`;
+                if (isSelectionMode) html += renderBatchToolbar(filteredPhones.length);
+                container.innerHTML += html;
+
                 const grid = document.createElement('div');
                 grid.className = 'grid-container';
                 grid.innerHTML = `<div class="square-card add-card" onclick="openModal('phoneModal')"><div class="plus">＋</div><span>添加小手机</span></div>`;
-                db.phones.filter(p =>
-                    (p.type || 'free') === selectedPhoneType &&
-                    ((p.name || '').toLowerCase().includes(keyword) ||
-                    (p.url || '').toLowerCase().includes(keyword))
-                ).forEach(p => {
+                
+                filteredPhones.forEach(p => {
+                    const isChecked = selectedIds.has(p.id);
                     grid.innerHTML += `
-                        <div class="square-card" onclick="openLaunchModal('phone', ${Number(p.id)})">
+                        <div class="square-card ${isChecked ? 'selection-mode' : ''}" onclick="${isSelectionMode ? `toggleCheckbox(${p.id})` : `openLaunchModal('phone', ${Number(p.id)})`}">
+                            ${isSelectionMode ? `<input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheckbox(${p.id})">` : ''}
                             ${p.pwd ? '<span class="badge-pwd">🔑</span>' : ''}
                             <div class="square-icon">${resolveIcon(p, '📱')}</div>
                             <div class="square-title">${escapeHTML(p.name)}</div>
@@ -526,18 +687,21 @@ abcdefghijklmnopqrstuvwxyz
                 container.appendChild(grid);
                 return;
             }
-
             if (currentTab === 'api') {
+                const filteredApis = db.apis.filter(a => (a.name || '').toLowerCase().includes(keyword) || (a.url || '').toLowerCase().includes(keyword));
+                let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button class="mini-copy-btn" onclick="toggleSelectionMode()">${isSelectionMode ? '退出多选' : '📁 批量管理'}</button></div>`;
+                if (isSelectionMode) html += renderBatchToolbar(filteredApis.length);
+                container.innerHTML += html;
+
                 const grid = document.createElement('div');
                 grid.className = 'grid-container';
                 grid.innerHTML = `<div class="square-card add-card" onclick="openModal('apiModal')"><div class="plus">＋</div><span>添加 API</span></div>`;
-
-                db.apis.filter(a =>
-                    (a.name || '').toLowerCase().includes(keyword) ||
-                    (a.url || '').toLowerCase().includes(keyword)
-                ).forEach(a => {
+                
+                filteredApis.forEach(a => {
+                    const isChecked = selectedIds.has(a.id);
                     grid.innerHTML += `
-                        <div class="square-card" onclick="openLaunchModal('api', ${Number(a.id)})">
+                        <div class="square-card ${isChecked ? 'selection-mode' : ''}" onclick="${isSelectionMode ? `toggleCheckbox(${a.id})` : `openLaunchModal('api', ${Number(a.id)})`}">
+                            ${isSelectionMode ? `<input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheckbox(${a.id})">` : ''}
                             ${a.key ? '<span class="badge-pwd">🗝️</span>' : ''}
                             <div class="square-icon">${resolveIcon(a, '🔌')}</div>
                             <div class="square-title">${escapeHTML(a.name)}</div>
@@ -546,128 +710,123 @@ abcdefghijklmnopqrstuvwxyz
                 container.appendChild(grid);
                 return;
             }
-
             if (currentTab === 'backup') {
                 container.innerHTML = `
                     <div class="backup-panel">
                         <h3>🗂️ HappyHome 数据备份</h3>
-                        <p>将当前浏览器保存的小手机、API、世界书、人设、美化和字体资料打包导出。换浏览器或设备后，打开同一个网址，再导入备份即可恢复。不同浏览器的本地数据不会自动互通。</p>
+                        <p>将当前浏览器保存的小手机、API、世界书、人设、美化和字体资料打包导出。换浏览器或设备后，导入备份即可恢复。</p>
                         <button class="btn-primary" onclick="exportBackup()">导出完整备份文件</button>
                         <div class="form-group" style="margin-top:14px"><label>导入备份文件（JSON）</label><input type="file" id="backupInput" accept=".json,application/json"></div>
                         <button class="btn-primary" onclick="importBackup()">导入并恢复备份</button>
-                        <p>导入会覆盖当前浏览器中 HappyHome 的现有数据，建议先导出当前备份。</p>
                     </div>`;
                 return;
             }
-
             container.innerHTML = renderCategoryBar(currentTab);
-
             if (currentTab === 'worldbook' || currentTab === 'character') {
                 renderWorldbookList(container, keyword);
             } else {
                 renderThemeList(container, keyword, currentTab);
             }
         }
-
-        /* 世界书列表：仍然使用原来的独立文件数据 */
-        function renderWorldbookList(container, keyword) {
+function renderWorldbookList(container, keyword) {
             const list = document.createElement('div');
             list.className = 'list-container';
-
             const isCharacter = currentTab === 'character';
             const sectionName = isCharacter ? '人设' : '世界书';
-            list.innerHTML = `
-                <div class="file-card add-card" style="justify-content:center;padding:16px;cursor:pointer;" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
-                    <span style="font-size:1.2rem;margin-right:6px;">＋</span>
-                    <span>手写 / 导入${sectionName}（支持多文件）</span>
-                </div>
-                <div class="hint-text">💡 每个文件均可单独编辑、复制、下载；长按文件卡片可重新分配分类</div>`;
 
-            db.files.filter(f => {
+            const filteredFiles = db.files.filter(f => {
                 if (f.section !== currentTab) return false;
                 if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
                 if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
-                if (keyword &&
-                    !(f.name || '').toLowerCase().includes(keyword) &&
-                    !(f.content || '').toLowerCase().includes(keyword)) return false;
+                if (keyword && !(f.name || '').toLowerCase().includes(keyword) && !(f.content || '').toLowerCase().includes(keyword)) return false;
                 return true;
-            }).forEach(f => {
+            });
+
+            let html = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <button class="mini-copy-btn" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">＋ 导入${sectionName}</button>
+                    <button class="mini-copy-btn" onclick="toggleSelectionMode()">${isSelectionMode ? '退出多选' : '📁 批量管理'}</button>
+                </div>`;
+            if (isSelectionMode) html += renderBatchToolbar(filteredFiles.length);
+            list.innerHTML = html + `<div class="hint-text">💡 长按任意文件卡片可分配分类，点击可查看或编辑</div>`;
+
+            filteredFiles.forEach(f => {
                 const card = document.createElement('div');
-                card.className = 'file-card';
+                const isChecked = selectedIds.has(f.id);
+                card.className = `file-card ${isChecked ? 'selection-mode' : ''}`;
                 card.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-name">${isCharacter ? "👤" : "📄"} ${escapeHTML(f.name)}</div>
-                        <div class="file-tags">
-                            <span class="file-tag">✍️ ${escapeHTML(f.author)}</span>
-                            <span class="file-tag">🏷️ ${escapeHTML(f.func)}</span>
+                    <div class="file-card-left">
+                        ${isSelectionMode ? `<input type="checkbox" class="card-checkbox" style="position:static;" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheckbox(${f.id})">` : ''}
+                        <div class="file-info">
+                            <div class="file-name">${isCharacter ? "👤" : "📄"} ${escapeHTML(f.name)}</div>
+                            <div class="file-tags">
+                                <span class="file-tag">✍️ ${escapeHTML(f.author)}</span>
+                                <span class="file-tag">🏷️ ${escapeHTML(f.func)}</span>
+                            </div>
                         </div>
                     </div>
                     <span style="color:var(--accent-caramel);font-size:0.85rem;">编辑 ›</span>`;
-
-                bindLongPress(card, () => openMoveCategoryModal(f.id), () => openEditFile(f.id));
+                
+                bindLongPress(card, () => openMoveCategoryModal(f.id), () => {
+                    if (isSelectionMode) toggleCheckbox(f.id);
+                    else openEditFile(f.id);
+                });
                 list.appendChild(card);
             });
-
             container.appendChild(list);
         }
 
-        /* 美化与字体列表 */
         function renderThemeList(container, keyword, section) {
             const isFont = section === 'font';
             const list = document.createElement('div');
             list.className = 'list-container';
 
-            list.innerHTML = `
-                <div class="file-card add-card" style="justify-content:center;padding:16px;cursor:pointer;" onclick="openThemeImportModal('${section}')">
-                    <span style="font-size:1.2rem;margin-right:6px;">＋</span>
-                    <span>导入${isFont ? '字体文件' : '美化文件'}</span>
-                </div>
-                <div class="hint-text">
-                    💡 点击文件查看预览与编辑，长按文件卡片可重新分配分类
-                    ${isFont ? ' · 支持 TTF / OTF / WOFF / WOFF2' : ' · 支持 CSS / HTML / JSON'}
-                </div>`;
-
-            db.themeAssets.filter(asset => {
+            const filteredAssets = db.themeAssets.filter(asset => {
                 if (asset.section !== section) return false;
                 if (selectedAuthor !== '全部' && asset.author !== selectedAuthor) return false;
                 if (selectedFunc !== '全部' && asset.func !== selectedFunc) return false;
-                if (keyword &&
-                    !(asset.name || '').toLowerCase().includes(keyword) &&
-                    !(asset.content || '').toLowerCase().includes(keyword)) return false;
+                if (keyword && !(asset.name || '').toLowerCase().includes(keyword) && !(asset.content || '').toLowerCase().includes(keyword)) return false;
                 return true;
-            }).forEach(asset => {
-                const card = document.createElement('div');
-                card.className = 'file-card';
-
-                const icon = asset.kind === 'font' ? '🔤' :
-                    asset.kind === 'css' ? '🎨' :
-                    asset.kind === 'html' ? '🌐' : '📋';
-
-                card.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-name">${icon} ${escapeHTML(asset.name)}</div>
-                        <div class="file-tags">
-                            <span class="file-tag">✍️ ${escapeHTML(asset.author)}</span>
-                            <span class="file-tag">🏷️ ${escapeHTML(asset.func)}</span>
-                            <span class="file-tag">${escapeHTML(asset.kind.toUpperCase())}</span>
-                        </div>
-                    </div><span style="color:var(--accent-caramel);font-size:0.85rem;">预览 ›</span>`;
-
-                bindLongPress(
-                    card,
-                    () => openMoveAssetCategoryModal(asset.id),
-                    () => openThemePreview(asset.id)
-                );
-                list.appendChild(card);
             });
 
+            let html = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <button class="mini-copy-btn" onclick="openThemeImportModal('${section}')">＋ 导入${isFont ? '字体' : '美化'}</button>
+                    <button class="mini-copy-btn" onclick="toggleSelectionMode()">${isSelectionMode ? '退出多选' : '📁 批量管理'}</button>
+                </div>`;
+            if (isSelectionMode) html += renderBatchToolbar(filteredAssets.length);
+            list.innerHTML = html + `<div class="hint-text">💡 长按文件卡片可分配分类</div>`;
+
+            filteredAssets.forEach(asset => {
+                const card = document.createElement('div');
+                const isChecked = selectedIds.has(asset.id);
+                card.className = `file-card ${isChecked ? 'selection-mode' : ''}`;
+                const icon = asset.kind === 'font' ? '🔤' : asset.kind === 'css' ? '🎨' : asset.kind === 'html' ? '🌐' : '📋';
+                card.innerHTML = `
+                    <div class="file-card-left">
+                        ${isSelectionMode ? `<input type="checkbox" class="card-checkbox" style="position:static;" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCheckbox(${asset.id})">` : ''}
+                        <div class="file-info">
+                            <div class="file-name">${icon} ${escapeHTML(asset.name)}</div>
+                            <div class="file-tags">
+                                <span class="file-tag">✍️ ${escapeHTML(asset.author)}</span>
+                                <span class="file-tag">🏷️ ${escapeHTML(asset.func)}</span>
+                                <span class="file-tag">${escapeHTML(asset.kind.toUpperCase())}</span>
+                            </div>
+                        </div>
+                    </div><span style="color:var(--accent-caramel);font-size:0.85rem;">预览 ›</span>`;
+                
+                bindLongPress(card, () => openMoveAssetCategoryModal(asset.id), () => {
+                    if (isSelectionMode) toggleCheckbox(asset.id);
+                    else openThemePreview(asset.id);
+                });
+                list.appendChild(card);
+            });
             container.appendChild(list);
         }
 
         function bindLongPress(element, longAction, clickAction) {
             let isLongPress = false;
             let timer = null;
-
             const start = () => {
                 isLongPress = false;
                 clearTimeout(timer);
@@ -676,16 +835,13 @@ abcdefghijklmnopqrstuvwxyz
                     longAction();
                 }, 550);
             };
-
             const cancel = () => clearTimeout(timer);
-
             element.addEventListener('touchstart', start, { passive: true });
             element.addEventListener('touchend', cancel);
             element.addEventListener('touchmove', cancel);
             element.addEventListener('mousedown', start);
             element.addEventListener('mouseup', cancel);
             element.addEventListener('mouseleave', cancel);
-
             element.addEventListener('click', () => {
                 if (!isLongPress) clickAction();
                 isLongPress = false;
@@ -695,7 +851,6 @@ abcdefghijklmnopqrstuvwxyz
         function addCategory(type) {
             const label = type === 'authors' ? '新作者名称' : '新功能分类名称';
             const val = prompt(`请输入${label}：`);
-
             if (val && val.trim()) {
                 const list = db.categories[currentTab][type];
                 if (!list.includes(val.trim())) {
@@ -717,13 +872,8 @@ abcdefghijklmnopqrstuvwxyz
             renderMain();
         }
 
-        /* 小手机 */
         let phoneIconData = '';
-
-        function openPhoneIconOptions() {
-            document.getElementById('pIconOptions').classList.toggle('hidden');
-        }
-
+        function openPhoneIconOptions() { document.getElementById('pIconOptions').classList.toggle('hidden'); }
         function setPhoneIconByUrl() {
             const url = prompt('请输入图片 URL：', document.getElementById('pIcon').value || '');
             if (url === null) return;
@@ -731,7 +881,6 @@ abcdefghijklmnopqrstuvwxyz
             document.getElementById('pIconOptions').classList.add('hidden');
             previewPhoneIconUrl();
         }
-
         function handlePhoneIconFile(input) {
             const file = input.files && input.files[0];
             if (!file) return;
@@ -744,13 +893,11 @@ abcdefghijklmnopqrstuvwxyz
             };
             reader.readAsDataURL(file);
         }
-
         function previewPhoneIconUrl() {
             const url = document.getElementById('pIcon').value.trim();
             phoneIconData = '';
             document.getElementById('pIconPreview').innerHTML = url ? `<img src="${escapeHTML(url)}" alt="图标预览" onerror="this.parentElement.textContent='＋'">` : '＋';
         }
-
         function savePhone() {
             const name = document.getElementById('pName').value.trim();
             let url = document.getElementById('pUrl').value.trim();
@@ -758,13 +905,10 @@ abcdefghijklmnopqrstuvwxyz
             const entry = document.getElementById('pEntry').value;
             const pwd = document.getElementById('pPwd').value.trim();
             const type = document.getElementById('pType').value || 'free';
-
             if (!name || !url) return alert('请填写名称和链接哦~');
             if (!url.startsWith('http')) url = 'https://' + url;
-
             db.phones.push({ id: Date.now(), name, url, icon, entry, pwd, type });
-            saveDB();
-            closeModal('phoneModal');
+            saveDB(); closeModal('phoneModal');
             ['pName', 'pUrl', 'pIcon', 'pPwd'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('pEntry').value = '';
             document.getElementById('pType').value = 'free';
@@ -773,14 +917,11 @@ abcdefghijklmnopqrstuvwxyz
             phoneIconData = '';
             renderMain();
         }
-
         function copyField(id) {
             const value = document.getElementById(id).value;
             if (!value) return alert('这个输入框目前是空的。');
             copyText(value);
         }
-
-        /* API */
         function saveApi() {
             const name = document.getElementById('aName').value.trim();
             let url = document.getElementById('aUrl').value.trim();
@@ -788,40 +929,25 @@ abcdefghijklmnopqrstuvwxyz
             const pwd = document.getElementById('aPwd').value.trim();
             const baseUrl = document.getElementById('aBaseUrl').value.trim();
             const key = document.getElementById('aKey').value.trim();
-
             if (!name || !url) return alert('请填写名称和地址链接哦~');
             if (!url.startsWith('http')) url = 'https://' + url;
-
             db.apis.push({ id: Date.now(), name, url, email, pwd, baseUrl, key });
-            saveDB();
-            closeModal('apiModal');
+            saveDB(); closeModal('apiModal');
             ['aName', 'aUrl', 'aEmail', 'aPwd', 'aBaseUrl', 'aKey'].forEach(id => document.getElementById(id).value = '');
             renderMain();
         }
-
-        /* 永恒浏览器：APK 包名来自用户提供的 v0.9.8.7 安装包。
-           该 APK 注册了 http/https 的 VIEW 入口，没有声明自定义 URL scheme，
-           因此使用 Android intent:// 并指定 package 启动。 */
         function buildEternalIntent(rawUrl) {
             try {
                 const target = new URL(rawUrl);
                 if (target.protocol !== 'http:' && target.protocol !== 'https:') return rawUrl;
                 const fallback = encodeURIComponent(target.href);
                 return `intent://${target.host}${target.pathname}${target.search}#Intent;scheme=${target.protocol.slice(0, -1)};package=com.sevensix.everlasting;S.browser_fallback_url=${fallback};end`;
-            } catch (e) {
-                return rawUrl;
-            }
+            } catch (e) { return rawUrl; }
         }
-
         function openLaunchModal(type, id) {
-            const item = type === 'phone'
-                ? db.phones.find(x => x.id === id)
-                : db.apis.find(x => x.id === id);
-
+            const item = type === 'phone' ? db.phones.find(x => x.id === id) : db.apis.find(x => x.id === id);
             if (!item) return;
-
             document.getElementById('launchTitle').innerText = item.name;
-
             let detailsHtml = `<div>🔗 链接：${escapeHTML(item.url)}${type === 'api' ? ` <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.url)})">复制</button>` : ''}</div>`;
             if (type === 'api') {
                 if (item.email) detailsHtml += `<div>📧 登录邮箱：${escapeHTML(item.email)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.email)})">复制</button></div>`;
@@ -832,12 +958,9 @@ abcdefghijklmnopqrstuvwxyz
                 if (item.entry) detailsHtml += `<div>进入方式：${escapeHTML(item.entry)}</div>`;
                 if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
             }
-
             document.getElementById('launchDetails').innerHTML = detailsHtml;
-
             const cleanUrl = item.url.replace(/^https?:\/\//, '');
             const encUrl = encodeURIComponent(item.url);
-
             document.getElementById('browserButtons').innerHTML = `
                 <a href="${escapeHTML(item.url)}" target="_blank" rel="noopener" class="browser-btn">🧭 默认浏览器</a>
                 <a href="${escapeHTML(buildEternalIntent(item.url))}" class="browser-btn">♾️ 永恒浏览器</a>
@@ -847,56 +970,33 @@ abcdefghijklmnopqrstuvwxyz
                 <a href="googlechrome://navigate?url=${encUrl}" class="browser-btn">🌐 Chrome</a>
                 <a href="microsoft-edge-https://${escapeHTML(cleanUrl)}" class="browser-btn">🌊 Edge</a>
                 <button class="browser-btn" style="grid-column:span 2;background:var(--card-cream);" onclick="copyText(${JSON.stringify(item.url)})">📋 一键复制链接</button>`;
-
             document.getElementById('deleteItemBtn').onclick = () => {
                 if (confirm('确定要删除吗？')) {
                     if (type === 'phone') db.phones = db.phones.filter(x => x.id !== id);
                     else db.apis = db.apis.filter(x => x.id !== id);
-                    saveDB();
-                    closeModal('launchModal');
-                    renderMain();
+                    saveDB(); closeModal('launchModal'); renderMain();
                 }
             };
-
             openModal('launchModal');
         }
-
-        function copyQuiet(txt) {
-            if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
-        }
-
+        function copyQuiet(txt) { if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {}); }
         function copyText(txt) {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(txt)
-                    .then(() => alert('已复制到剪贴板！'))
-                    .catch(() => alert('复制失败，请手动复制。'));
-            } else {
-                alert('当前浏览器不支持自动复制，请手动复制。');
-            }
+            if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => alert('已复制到剪贴板！')).catch(() => alert('复制失败。'));
+            else alert('不支持自动复制。');
         }
-
-        /* 世界书导入 */
         function openImportModal() {
             const cats = db.categories.worldbook;
-            document.getElementById('impAuthor').innerHTML =
-                cats.authors.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-            document.getElementById('impFunc').innerHTML =
-                cats.funcs.map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            document.getElementById('impAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('impFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
             document.getElementById('fileInput').value = '';
             document.getElementById('manualWorldName').value = '';
             document.getElementById('manualWorldContent').value = '';
             openModal('importFileModal');
         }
-
         async function parseDocxArrayBuffer(arrayBuffer) {
-            try {
-                const result = await mammoth.extractRawText({ arrayBuffer });
-                return result.value || '(空文档)';
-            } catch (e) {
-                return 'DOCX 解析失败：' + e.message;
-            }
+            try { return (await mammoth.extractRawText({ arrayBuffer })).value || '(空文档)'; }
+            catch (e) { return 'DOCX 解析失败：' + e.message; }
         }
-
         async function readTextFile(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -905,7 +1005,6 @@ abcdefghijklmnopqrstuvwxyz
                 reader.readAsText(file, 'UTF-8');
             });
         }
-
         async function importContentFiles(fileList, section, author, func) {
             for (const file of fileList) {
                 const lowerName = file.name.toLowerCase();
@@ -916,23 +1015,16 @@ abcdefghijklmnopqrstuvwxyz
                             if (zipEntry.dir || relativePath.startsWith('__MACOSX')) continue;
                             const cleanName = relativePath.split('/').pop();
                             if (!cleanName) continue;
-                            let content = '';
-                            if (cleanName.toLowerCase().endsWith('.docx')) content = await parseDocxArrayBuffer(await zipEntry.async('arraybuffer'));
-                            else content = await zipEntry.async('string');
+                            let content = cleanName.toLowerCase().endsWith('.docx') ? await parseDocxArrayBuffer(await zipEntry.async('arraybuffer')) : await zipEntry.async('string');
                             db.files.push({ id: Date.now() + Math.random(), section, name: cleanName, author, func, content });
                         }
-                    } catch (e) {
-                        alert('ZIP 解压失败：' + e.message);
-                    }
+                    } catch (e) { alert('ZIP 解压失败：' + e.message); }
                 } else {
-                    const content = lowerName.endsWith('.docx')
-                        ? await parseDocxArrayBuffer(await file.arrayBuffer())
-                        : await readTextFile(file);
+                    const content = lowerName.endsWith('.docx') ? await parseDocxArrayBuffer(await file.arrayBuffer()) : await readTextFile(file);
                     db.files.push({ id: Date.now() + Math.random(), section, name: file.name, author, func, content });
                 }
             }
         }
-
         async function handleFileImport() {
             const files = document.getElementById('fileInput').files;
             const author = document.getElementById('impAuthor').value;
@@ -940,32 +1032,24 @@ abcdefghijklmnopqrstuvwxyz
             const manualName = document.getElementById('manualWorldName').value.trim();
             const manualContent = document.getElementById('manualWorldContent').value;
             let added = false;
-
             if (manualContent.trim()) {
                 db.files.push({ id: Date.now() + Math.random(), section: 'worldbook', name: manualName || '手写世界书.txt', author, func, content: manualContent });
                 added = true;
             }
-            if (files.length) {
-                await importContentFiles(files, 'worldbook', author, func);
-                added = true;
-            }
+            if (files.length) { await importContentFiles(files, 'worldbook', author, func); added = true; }
             if (!added) return alert('请手写内容或选择需要导入的文件。');
-            saveDB();
-            closeModal('importFileModal');
-            renderMain();
+            saveDB(); closeModal('importFileModal'); renderMain();
             alert('世界书保存 / 导入完成！');
         }
-
         function openCharacterModal() {
             const cats = db.categories.character;
-            document.getElementById('charAuthor').innerHTML = cats.authors.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-            document.getElementById('charFunc').innerHTML = cats.funcs.map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            document.getElementById('charAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('charFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
             document.getElementById('charManualName').value = '';
             document.getElementById('charManualContent').value = '';
             document.getElementById('charFileInput').value = '';
             openModal('characterModal');
         }
-
         async function handleCharacterImport() {
             const files = document.getElementById('charFileInput').files;
             const author = document.getElementById('charAuthor').value;
@@ -973,143 +1057,86 @@ abcdefghijklmnopqrstuvwxyz
             const manualName = document.getElementById('charManualName').value.trim();
             const manualContent = document.getElementById('charManualContent').value;
             let added = false;
-
             if (manualContent.trim()) {
                 db.files.push({ id: Date.now() + Math.random(), section: 'character', name: manualName || '手写人设.txt', author, func, content: manualContent });
                 added = true;
             }
-            if (files.length) {
-                await importContentFiles(files, 'character', author, func);
-                added = true;
-            }
+            if (files.length) { await importContentFiles(files, 'character', author, func); added = true; }
             if (!added) return alert('请手写人设内容或选择需要导入的文件。');
-            saveDB();
-            closeModal('characterModal');
-            renderMain();
+            saveDB(); closeModal('characterModal'); renderMain();
             alert('人设保存 / 导入完成！');
         }
-
-        /* 世界书长按移动分类 */
         function openMoveCategoryModal(id) {
             const f = db.files.find(x => x.id === id);
             if (!f) return;
-
-            movingFileId = id;
-            movingAssetId = null;
-
+            movingFileId = id; movingAssetId = null;
             const cats = db.categories[f.section] || db.categories.worldbook;
             document.getElementById('moveFileName').innerText = `📄 ${f.name}`;
-            document.getElementById('moveAuthorSel').innerHTML =
-                cats.authors.map(a => `<option value="${escapeHTML(a)}" ${a === f.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
-            document.getElementById('moveFuncSel').innerHTML =
-                cats.funcs.map(fn => `<option value="${escapeHTML(fn)}" ${fn === f.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
-
+            document.getElementById('moveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}" ${a === f.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
+            document.getElementById('moveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}" ${fn === f.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
             openModal('moveCatModal');
         }
-
         function openMoveAssetCategoryModal(id) {
             const asset = db.themeAssets.find(x => x.id === id);
             if (!asset) return;
-
-            movingFileId = null;
-            movingAssetId = id;
-            movingAssetSection = asset.section;
-
+            movingFileId = null; movingAssetId = id; movingAssetSection = asset.section;
             const cats = db.categories[asset.section];
             document.getElementById('moveFileName').innerText = `📄 ${asset.name}`;
-            document.getElementById('moveAuthorSel').innerHTML =
-                cats.authors.map(a => `<option value="${escapeHTML(a)}" ${a === asset.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');openModal('moveCatModal');
+            document.getElementById('moveAuthorSel').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}" ${a === asset.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
+            document.getElementById('moveFuncSel').innerHTML = (cats.funcs || []).map(fn => `<option value="${escapeHTML(fn)}" ${fn === asset.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
+            openModal('moveCatModal');
         }
-
         function confirmMoveCategory() {
             const author = document.getElementById('moveAuthorSel').value;
             const func = document.getElementById('moveFuncSel').value;
-
             if (movingAssetId !== null) {
                 const asset = db.themeAssets.find(x => x.id === movingAssetId);
-                if (asset) {
-                    asset.author = author;
-                    asset.func = func;
-                }
+                if (asset) { asset.author = author; asset.func = func; }
             } else {
                 const f = db.files.find(x => x.id === movingFileId);
-                if (f) {
-                    f.author = author;
-                    f.func = func;
-                }
+                if (f) { f.author = author; f.func = func; }
             }
-
-            saveDB();
-            movingFileId = null;
-            movingAssetId = null;
-            closeModal('moveCatModal');
-            renderMain();
+            saveDB(); movingFileId = null; movingAssetId = null; closeModal('moveCatModal'); renderMain();
         }
-
-        /* 世界书编辑 */
         function openEditFile(id) {
             const f = db.files.find(x => x.id === id);
             if (!f) return;
-
             currentEditingFileId = id;
             document.getElementById('editFileName').value = f.name;
             document.getElementById('editFileContent').value = f.content;
             openModal('editFileModal');
         }
-
         function saveFileEdit() {
             const f = db.files.find(x => x.id === currentEditingFileId);
             if (f) {
                 f.name = document.getElementById('editFileName').value.trim() || f.name;
                 f.content = document.getElementById('editFileContent').value;
-                saveDB();
-                closeModal('editFileModal');
-                renderMain();
+                saveDB(); closeModal('editFileModal'); renderMain();
             }
         }
-
         async function copyCurrentFile() {
             const content = document.getElementById('editFileContent').value;
-            try {
-                await navigator.clipboard.writeText(content);
-                alert('文件内容已复制！');
-            } catch (e) {
-                const area = document.getElementById('editFileContent');
-                area.focus();
-                area.select();
-                alert('自动复制失败，请使用系统复制功能。');
-            }
+            try { await navigator.clipboard.writeText(content); alert('文件内容已复制！'); }
+            catch (e) { const area = document.getElementById('editFileContent'); area.focus(); area.select(); alert('请手动复制。'); }
         }
-
         function downloadCurrentFile() {
             const f = db.files.find(x => x.id === currentEditingFileId);
             if (!f) return;
-            const downloadName = /\.docx$/i.test(f.name) ? f.name.replace(/\.docx$/i, '.txt') : f.name;
-            downloadTextFile(downloadName, document.getElementById('editFileContent').value);
+            downloadTextFile(/\.docx$/i.test(f.name) ? f.name.replace(/\.docx$/i, '.txt') : f.name, document.getElementById('editFileContent').value);
         }
-
         function downloadTextFile(name, content) {
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
-            link.download = name || 'HappyHome.txt';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            link.href = url; link.download = name || 'HappyHome.txt';
+            document.body.appendChild(link); link.click(); link.remove();
             URL.revokeObjectURL(url);
         }
-
         function deleteCurrentFile() {
             if (!confirm('确定要删除吗？')) return;
-
             db.files = db.files.filter(x => x.id !== currentEditingFileId);
-            saveDB();
-            closeModal('editFileModal');
-            renderMain();
+            saveDB(); closeModal('editFileModal'); renderMain();
         }
-
-        /* 完整备份：包含 IndexedDB 中的美化/字体二进制文件 */
         function blobToDataURL(blob) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1118,7 +1145,6 @@ abcdefghijklmnopqrstuvwxyz
                 reader.readAsDataURL(blob);
             });
         }
-
         function dataURLToBlob(dataURL) {
             const parts = dataURL.split(',');
             const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'application/octet-stream';
@@ -1127,35 +1153,30 @@ abcdefghijklmnopqrstuvwxyz
             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
             return new Blob([bytes], { type: mime });
         }
-
         async function exportBackup() {
             try {
                 const backup = { format: 'HappyHomeBackup', version: 1, createdAt: new Date().toISOString(), db, assets: [] };
                 for (const asset of (db.themeAssets || [])) {
                     const stored = await themeDBAction('get', asset.id);
-                    if (stored && stored.blob) {
-                        backup.assets.push({ id: asset.id, name: stored.name || asset.name, type: stored.type || stored.blob.type, data: await blobToDataURL(stored.blob) });
-                    }
+                    if (stored && stored.blob) backup.assets.push({ id: asset.id, name: stored.name || asset.name, type: stored.type || stored.blob.type, data: await blobToDataURL(stored.blob) });
                 }
                 const blob = new Blob([JSON.stringify(backup)], { type: 'application/json;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = `HappyHome-备份-${new Date().toISOString().slice(0,10)}.json`;
+                a.href = url; a.download = `HappyHome-备份-${new Date().toISOString().slice(0,10)}.json`;
                 document.body.appendChild(a); a.click(); a.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 1500);
-                alert('备份文件已导出。请妥善保存该文件。');
+                alert('备份文件已导出。');
             } catch (e) { alert('备份失败：' + e.message); }
-            }
-
+        }
         async function importBackup() {
             const input = document.getElementById('backupInput');
             const file = input && input.files && input.files[0];
-            if (!file) return alert('请先选择 HappyHome 备份 JSON 文件。');
-            if (!confirm('导入将覆盖当前浏览器中的 HappyHome 数据，确定继续吗？')) return;
+            if (!file) return alert('请先选择备份文件。');
+            if (!confirm('导入将覆盖当前浏览器的数据，确定继续吗？')) return;
             try {
                 const backup = JSON.parse(await file.text());
-                if (backup.format !== 'HappyHomeBackup' || !backup.db) throw new Error('这不是有效的 HappyHome 备份文件。');
+                if (backup.format !== 'HappyHomeBackup' || !backup.db) throw new Error('无效的备份文件。');
                 const restored = backup.db;
                 restored.phones ||= []; restored.apis ||= []; restored.files ||= [];
                 restored.themeAssets ||= []; restored.categories ||= {};
@@ -1164,57 +1185,34 @@ abcdefghijklmnopqrstuvwxyz
                     restored.categories[section].authors ||= ['默认作者'];
                     restored.categories[section].funcs ||= [];
                 }
-                db = restored;
-                saveDB();
-                for (const item of (backup.assets || [])) {
-                    await themeDBAction('put', item.id, { id:item.id, name:item.name, type:item.type, blob:dataURLToBlob(item.data) });
-                }
-                alert('备份导入成功！页面即将刷新。');
-                location.reload();
+                db = restored; saveDB();
+                for (const item of (backup.assets || [])) await themeDBAction('put', item.id, { id:item.id, name:item.name, type:item.type, blob:dataURLToBlob(item.data) });
+                alert('导入成功！页面即将刷新。'); location.reload();
             } catch (e) { alert('导入失败：' + e.message); }
         }
-
-        /* IndexedDB：保存字体等二进制文件 */
         const themeDBPromise = new Promise((resolve, reject) => {
-            if (!('indexedDB' in window)) {
-                reject(new Error('当前浏览器不支持 IndexedDB'));
-                return;
-            }
-
+            if (!('indexedDB' in window)) { reject(new Error('不支持 IndexedDB')); return; }
             const request = indexedDB.open('HappyHomeThemeFiles', 1);
-
             request.onupgradeneeded = event => {
                 const database = event.target.result;
-                if (!database.objectStoreNames.contains('assets')) {
-                    database.createObjectStore('assets', { keyPath: 'id' });
-                }
+                if (!database.objectStoreNames.contains('assets')) database.createObjectStore('assets', { keyPath: 'id' });
             };
-
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);
         });
-
         async function themeDBAction(mode, id, value) {
             const database = await themeDBPromise;
-
             return new Promise((resolve, reject) => {
                 const transaction = database.transaction('assets', 'readwrite');
                 const store = transaction.objectStore('assets');
-
                 let request;
                 if (mode === 'put') request = store.put(value);
                 if (mode === 'get') request = store.get(id);
                 if (mode === 'delete') request = store.delete(id);
-
-                if (request) {
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                } else {
-                    reject(new Error('未知的数据库操作'));
-                }
+                if (request) { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }
+                else reject(new Error('未知操作'));
             });
         }
-
         function getAssetKind(name) {
             const ext = name.split('.').pop().toLowerCase();
             if (['ttf', 'otf', 'woff', 'woff2'].includes(ext)) return 'font';
@@ -1223,92 +1221,40 @@ abcdefghijklmnopqrstuvwxyz
             if (ext === 'json') return 'json';
             return null;
         }
-
-        /* 美化与字体导入 */
         function openThemeImportModal(section) {
             const cats = db.categories[section];
             const isFont = section === 'font';
-
-            document.getElementById('themeImportTitle').innerText =
-                isFont ? '🔤 导入字体文件' : '🎀 导入美化文件';
-
+            document.getElementById('themeImportTitle').innerText = isFont ? '🔤 导入字体文件' : '🎀 导入美化文件';
             document.getElementById('themeFileInput').value = '';
-            document.getElementById('themeFileInput').accept = isFont
-                ? '.ttf,.otf,.woff,.woff2'
-                : '.css,.html,.htm,.json';
-
-            document.getElementById('themeImpAuthor').innerHTML =
-                cats.authors.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
-
-            document.getElementById('themeImpFunc').innerHTML =
-                cats.funcs.map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
-
+            document.getElementById('themeFileInput').accept = isFont ? '.ttf,.otf,.woff,.woff2' : '.css,.html,.htm,.json';
+            document.getElementById('themeImpAuthor').innerHTML = (cats.authors || []).map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('themeImpFunc').innerHTML = (cats.funcs || []).map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
             openModal('themeImportModal');
         }
-
         async function handleThemeImport() {
             const files = document.getElementById('themeFileInput').files;
             if (!files.length) return alert('请选择文件！');
-
             const author = document.getElementById('themeImpAuthor').value;
             const func = document.getElementById('themeImpFunc').value;
-
             try {
                 for (const file of files) {
                     const kind = getAssetKind(file.name);
                     if (!kind) continue;
-
                     const section = kind === 'font' ? 'font' : 'theme';
-
-                    // 不允许将字体误导入美化分类，反之亦然
-                    if (currentTab !== section) {
-                        alert(`${file.name} 属于${section === 'font' ? '字体' : '美化'}文件，请在对应栏目导入。`);
-                        continue;
-                    }
-
+                    if (currentTab !== section) { alert(`${file.name} 属于${section === 'font' ? '字体' : '美化'}文件。`); continue; }
                     const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-                    let content = '';
-
-                    if (kind !== 'font') {
-                        content = await readTextFile(file);
-                    }
-
-                    await themeDBAction('put', id, {
-                        id,
-                        blob: file,
-                        name: file.name,
-                        type: file.type || 'application/octet-stream'
-                    });
-
-                    db.themeAssets.push({
-                        id,
-                        name: file.name,
-                        section,
-                        author,
-                        func,
-                        kind,
-                        content,
-                        size: file.size,
-                        type: file.type || ''
-                    });
+                    let content = kind !== 'font' ? await readTextFile(file) : '';
+                    await themeDBAction('put', id, { id, blob: file, name: file.name, type: file.type || 'application/octet-stream' });
+                    db.themeAssets.push({ id, name: file.name, section, author, func, kind, content, size: file.size, type: file.type || '' });
                 }
-
-                saveDB();
-                closeModal('themeImportModal');
-                renderMain();
+                saveDB(); closeModal('themeImportModal'); renderMain();
                 alert('文件导入完成！');
-            } catch (e) {
-                alert('导入失败：' + e.message);
-            }
+            } catch (e) { alert('导入失败：' + e.message); }
         }
-/* 美化/字体预览 */
         async function openThemePreview(id) {
             const asset = db.themeAssets.find(x => x.id === id);
             if (!asset) return;
-
-            currentThemeAssetId = id;
-            themeEditorVisible = false;
-
+            currentThemeAssetId = id; themeEditorVisible = false;
             document.getElementById('themeEditName').value = asset.name;
             document.getElementById('themeEditContent').value = asset.content || '';
             document.getElementById('themeTextEditor').classList.add('hidden');
@@ -1317,215 +1263,99 @@ abcdefghijklmnopqrstuvwxyz
             document.getElementById('themePreviewArea').innerHTML = '';
             document.getElementById('fontSampleArea').classList.add('hidden');
             document.getElementById('themePreviewHint').innerText = '';
-
-            // 清理上一次字体预览资源
-            if (currentFontFace) {
-                try { document.fonts.delete(currentFontFace); } catch (e) {}
-                currentFontFace = null;
-            }
-            if (currentFontObjectURL) {
-                URL.revokeObjectURL(currentFontObjectURL);
-                currentFontObjectURL = null;
-            }
-
+            if (currentFontFace) { try { document.fonts.delete(currentFontFace); } catch (e) {} currentFontFace = null; }
+            if (currentFontObjectURL) { URL.revokeObjectURL(currentFontObjectURL); currentFontObjectURL = null; }
             try {
                 if (asset.kind === 'font') {
                     const stored = await themeDBAction('get', id);
-                    if (!stored || !stored.blob) throw new Error('字体文件不存在，请重新导入。');
+                    if (!stored || !stored.blob) throw new Error('字体不存在');
                     currentFontObjectURL = URL.createObjectURL(stored.blob);
                     const fontFamily = `HappyHomeFont_${String(id).replace(/[^a-zA-Z0-9]/g, '')}`;
-
                     currentFontFace = new FontFace(fontFamily, `url("${currentFontObjectURL}")`);
                     await currentFontFace.load();
                     document.fonts.add(currentFontFace);
-
                     document.getElementById('fontSampleArea').classList.remove('hidden');
                     document.getElementById('fontPreview').style.fontFamily = `"${fontFamily}"`;
-                    document.getElementById('fontPreview').innerText =
-                        document.getElementById('fontSampleText').value;
-
-                    document.getElementById('themePreviewHint').innerText =
-                        '字体预览已加载。字体文件为二进制格式，不支持直接编辑内容，但可以重命名、下载和删除。';
-
+                    document.getElementById('fontPreview').innerText = document.getElementById('fontSampleText').value;
+                    document.getElementById('themePreviewHint').innerText = '字体预览已加载。';
                 } else if (asset.kind === 'css') {
                     const frame = document.createElement('iframe');
                     frame.setAttribute('sandbox', '');
-                    frame.title = 'CSS 美化预览';
-
-                    const safeCSS = asset.content.replace(/<\/style/gi, '<\\/style');
-
-                    frame.srcdoc = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-body{font-family:sans-serif;padding:16px;background:#fffdf7;color:#5c4b3b}
-.demo-card{padding:16px;margin:12px 0;border-radius:14px;background:#fff8e7;border:1px solid #f3e5c8}
-.demo-button{padding:10px 16px;border:0;border-radius:12px;background:#ffd97d;color:#5c4b3b}
-${safeCSS}
-</style>
-</head>
-<body>
-<h3>美化效果预览</h3>
-<p>这是一个预览页面，用于观察 CSS 样式效果。</p>
-<div class="demo-card">示例卡片内容</div>
-<button class="demo-button">示例按钮</button>
-</body></html>`;
-
+                    frame.srcdoc = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:16px;background:#fffdf7;color:#5c4b3b}${asset.content}</style></head><body><h3>预览</h3><p>样式效果测试</p></body></html>`;
                     document.getElementById('themePreviewArea').appendChild(frame);
-                    document.getElementById('themePreviewHint').innerText =
-                        'CSS 仅在此预览框内生效，不会直接修改 HappyHome 页面。';
-
                 } else if (asset.kind === 'html') {
                     const frame = document.createElement('iframe');
                     frame.setAttribute('sandbox', '');
-                    frame.title = 'HTML 文件预览';
                     frame.srcdoc = asset.content;
                     document.getElementById('themePreviewArea').appendChild(frame);
-
-                    document.getElementById('themePreviewHint').innerText =
-                        'HTML 预览使用隔离框架，出于安全考虑，预览中的脚本不会运行。';
-
                 } else if (asset.kind === 'json') {
                     const pre = document.createElement('pre');
-
-                    try {
-                        pre.textContent = JSON.stringify(JSON.parse(asset.content), null, 2);
-                    } catch (e) {
-                        pre.textContent = asset.content;
-                        document.getElementById('themePreviewHint').innerText =
-                            'JSON 格式解析失败，当前显示原始文本。';
-                    }
-
+                    pre.textContent = asset.content;
                     document.getElementById('themePreviewArea').appendChild(pre);
                 }
-
                 openModal('themePreviewModal');
-            } catch (e) {
-                alert('预览失败：' + e.message);
-            }
+            } catch (e) { alert('预览失败：' + e.message); }
         }
-
-        document.getElementById('fontSampleText').addEventListener('input', function () {
-            document.getElementById('fontPreview').innerText = this.value;
-        });
-
         function toggleThemeEditor() {
             if (!currentThemeAssetId) return;
             const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
             if (!asset || asset.kind === 'font') return;
-
             themeEditorVisible = !themeEditorVisible;
             document.getElementById('themeTextEditor').classList.toggle('hidden', !themeEditorVisible);
-            document.getElementById('themeEditToggle').innerText =
-                themeEditorVisible ? '收起内容编辑' : '编辑文件内容';
+            document.getElementById('themeEditToggle').innerText = themeEditorVisible ? '收起内容编辑' : '编辑文件内容';
         }
-
         async function saveThemeAsset() {
             const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
             if (!asset) return;
-
             const newName = document.getElementById('themeEditName').value.trim();
             if (newName) asset.name = newName;
-
             if (asset.kind !== 'font' && themeEditorVisible) {
                 asset.content = document.getElementById('themeEditContent').value;
-
                 const stored = await themeDBAction('get', asset.id);
                 if (stored) {
-                    const blob = new Blob([asset.content], {
-                        type: stored.type || 'text/plain;charset=utf-8'
-                    });
-                    await themeDBAction('put', asset.id, {
-                        ...stored,
-                        blob,
-                        name: asset.name
-                    });
-                }
-            } else if (asset.kind === 'font') {
-                const stored = await themeDBAction('get', asset.id);
-                if (stored) {
-                    await themeDBAction('put', asset.id, {
-                        ...stored,
-                        name: asset.name
-                    });
+                    const blob = new Blob([asset.content], { type: stored.type || 'text/plain;charset=utf-8' });
+                    await themeDBAction('put', asset.id, { ...stored, blob, name: asset.name });
                 }
             }
-
-            saveDB();
-            document.getElementById('themePreviewTitle').innerText = asset.name;
-            renderMain();
-            alert('保存成功！');
+            saveDB(); renderMain(); alert('保存成功！');
         }
-
         async function downloadThemeAsset() {
             const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
             if (!asset) return;
-
             try {
                 const stored = await themeDBAction('get', asset.id);
-                if (!stored || !stored.blob) return alert('文件数据不存在。');
-
+                if (!stored || !stored.blob) return alert('文件不存在。');
                 const url = URL.createObjectURL(stored.blob);
                 const link = document.createElement('a');
-                link.href = url;
-                link.download = asset.name;
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-
+                link.href = url; link.download = asset.name;
+                document.body.appendChild(link); link.click(); link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 1500);
-            } catch (e) {
-                alert('下载失败：' + e.message);
-            }
+            } catch (e) { alert('下载失败：' + e.message); }
         }
-
         async function deleteThemeAsset() {
-            if (!confirm('确定删除这个文件吗？')) return;
-
+            if (!confirm('确定删除吗？')) return;
             const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
             if (!asset) return;
-
             try {
                 await themeDBAction('delete', asset.id);
                 db.themeAssets = db.themeAssets.filter(x => x.id !== currentThemeAssetId);
-                saveDB();
-
-                if (currentFontFace) {
-                    try { document.fonts.delete(currentFontFace); } catch (e) {}
-                    currentFontFace = null;
-                }
-                if (currentFontObjectURL) {
-                    URL.revokeObjectURL(currentFontObjectURL);
-                    currentFontObjectURL = null;
-                }
-
-                closeModal('themePreviewModal');
-                renderMain();
-            } catch (e) {
-                alert('删除失败：' + e.message);
-            }
+                saveDB(); closeModal('themePreviewModal'); renderMain();
+            } catch (e) { alert('删除失败：' + e.message); }
         }
-
-        /* 通用弹窗 */
-        function openModal(id) {
-            document.getElementById(id).classList.add('show');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        /* 点击遮罩关闭弹窗 */
+        function openModal(id) { document.getElementById(id).classList.add('show'); pushState('modal_' + id); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', event => {
                 if (event.target === overlay) overlay.classList.remove('show');
             });
         });
-
-        /* 初始化 */
         renderMain();
-</script>
+    </script>
 </body>
 </html>
+        function toggleCheckbox(id) {
+            if (selectedIds.has(id)) selectedIds.delete(id);
+            else selectedIds.add(id);
+            renderMain();
+        }
+        
