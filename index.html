@@ -1428,14 +1428,7 @@
             const box = document.getElementById('browserButtons');
             box.insertBefore(b, box.firstChild);
         };
-    /* ===== 补丁：长按小手机进入管理菜单 ===== */
-function bindPhoneLongPress(card, phone) {
-    bindLongPress(
-        card,
-        () => phoneManage(phone.id),
-        () => openPhone(phone)
-    );
-}
+    
         renderMain();
     </script>
 </body>
