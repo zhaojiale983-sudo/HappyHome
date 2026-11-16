@@ -189,6 +189,12 @@
         .asset-actions { display: flex; gap: 8px; margin-top: 10px; }
         .asset-actions button { flex: 1; }
         .small-note { color: var(--text-light); font-size: 0.76rem; line-height: 1.6; margin: 6px 0 12px; }
+        .input-copy-row { display:flex; align-items:center; gap:6px; }
+        .input-copy-row input { flex:1; min-width:0; }
+        .phone-icon-picker { width:62px; height:62px; border:1.5px dashed var(--accent-caramel); border-radius:14px; background:#fff; color:var(--accent-caramel); display:flex; align-items:center; justify-content:center; font-size:1.8rem; cursor:pointer; overflow:hidden; }
+        .phone-icon-picker img { width:100%; height:100%; object-fit:cover; }
+        .phone-icon-area { display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin-bottom:12px; }
+        .phone-icon-area label { font-size:.85rem; font-weight:bold; }
         .hidden { display: none !important; }
 
         @media (display-mode: standalone) {
@@ -210,13 +216,14 @@
     </header>
 
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="搜索小手机、API、世界书、美化、字体..." oninput="renderMain()">
+        <input type="text" id="searchInput" placeholder="搜索小手机、API、世界书、人设、美化、字体..." oninput="renderMain()">
     </div>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('phone', this)">📱 小手机</button>
         <button class="tab-btn" onclick="switchTab('api', this)">🔌 API站子</button>
         <button class="tab-btn" onclick="switchTab('worldbook', this)">📖 世界书</button>
+        <button class="tab-btn" onclick="switchTab('character', this)">👤 人设</button>
         <button class="tab-btn" onclick="switchTab('theme', this)">🎀 美化</button>
         <button class="tab-btn" onclick="switchTab('font', this)">🔤 字体</button>
     </div>
@@ -227,10 +234,20 @@
     <div class="modal-overlay" id="phoneModal">
         <div class="modal-box">
             <div class="modal-header"><span>📱 添加小手机</span><button class="close-btn" onclick="closeModal('phoneModal')">✕</button></div>
+            <div class="phone-icon-area">
+                <label>图标（可选，留空自动抓取网站图标）</label>
+                <button type="button" class="phone-icon-picker" id="pIconPreview" onclick="openPhoneIconOptions()">＋</button>
+                <div id="pIconOptions" class="asset-actions hidden">
+                    <button type="button" class="mini-copy-btn" onclick="setPhoneIconByUrl()">输入图片 URL</button>
+                    <button type="button" class="mini-copy-btn" onclick="document.getElementById('pIconFile').click()">上传图片</button>
+                </div>
+                <input type="file" id="pIconFile" accept="image/*" hidden onchange="handlePhoneIconFile(this)">
+                <input type="url" id="pIcon" class="hidden" placeholder="图片 URL" oninput="previewPhoneIconUrl()">
+            </div>
             <div class="form-group"><label>名称</label><input type="text" id="pName" placeholder="例如：小手机一号"></div>
             <div class="form-group"><label>链接</label><input type="url" id="pUrl" placeholder="https://..."></div>
-            <div class="form-group"><label>自定义图标链接（可选，留空自动抓取）</label><input type="url" id="pIcon" placeholder="https://...png"></div>
-            <div class="form-group"><label>密码 / 备注（可选）</label><input type="text" id="pPwd" placeholder="进入密码或房间号"></div>
+            <div class="form-group"><label>进入方式</label><select id="pEntry"><option value="">请选择（可选）</option><option value="邮箱">邮箱</option><option value="QQ">QQ</option><option value="DC">DC</option></select></div>
+            <div class="form-group"><label>密码</label><input type="text" id="pPwd" placeholder="进入密码（可选）"></div>
             <button class="btn-primary" onclick="savePhone()">保存到 HappyHome</button>
         </div>
     </div>
@@ -240,11 +257,11 @@
         <div class="modal-box">
             <div class="modal-header"><span>🔌 添加 API 站子</span><button class="close-btn" onclick="closeModal('apiModal')">✕</button></div>
             <div class="form-group"><label>名称</label><input type="text" id="aName" placeholder="例如：中转站A"></div>
-            <div class="form-group"><label>地址链接（网页后台）</label><input type="url" id="aUrl" placeholder="https://..."></div>
-            <div class="form-group"><label>登录邮箱（可选）</label><input type="email" id="aEmail" placeholder="用于登录站子的邮箱"></div>
-            <div class="form-group"><label>登录密码（可选）</label><input type="text" id="aPwd" placeholder="登录密码"></div>
-            <div class="form-group"><label>接口 Base URL（可选）</label><input type="text" id="aBaseUrl" placeholder="https://api.xxx.com/v1"></div>
-            <div class="form-group"><label>密钥 API Key（可选）</label><input type="text" id="aKey" placeholder="sk-..."></div>
+            <div class="form-group"><label>地址链接（网页后台）</label><div class="input-copy-row"><input type="url" id="aUrl" placeholder="https://..."><button type="button" class="mini-copy-btn" onclick="copyField('aUrl')">复制</button></div></div>
+            <div class="form-group"><label>登录邮箱（可选）</label><div class="input-copy-row"><input type="email" id="aEmail" placeholder="用于登录站子的邮箱"><button type="button" class="mini-copy-btn" onclick="copyField('aEmail')">复制</button></div></div>
+            <div class="form-group"><label>登录密码（可选）</label><div class="input-copy-row"><input type="text" id="aPwd" placeholder="登录密码"><button type="button" class="mini-copy-btn" onclick="copyField('aPwd')">复制</button></div></div>
+            <div class="form-group"><label>接口 Base URL（可选）</label><div class="input-copy-row"><input type="text" id="aBaseUrl" placeholder="https://api.xxx.com/v1"><button type="button" class="mini-copy-btn" onclick="copyField('aBaseUrl')">复制</button></div></div>
+            <div class="form-group"><label>密钥 API Key（可选）</label><div class="input-copy-row"><input type="text" id="aKey" placeholder="sk-..."><button type="button" class="mini-copy-btn" onclick="copyField('aKey')">复制</button></div></div>
             <button class="btn-primary" onclick="saveApi()">保存 API 站子</button>
         </div>
     </div>
@@ -258,6 +275,7 @@
             <button class="btn-primary btn-danger" id="deleteItemBtn">删除此卡片</button>
         </div>
     </div>
+    </div>
 
     <!-- 世界书专用导入 -->
     <div class="modal-overlay" id="importFileModal">
@@ -265,8 +283,23 @@
             <div class="modal-header"><span>📖 导入世界书</span><button class="close-btn" onclick="closeModal('importFileModal')">✕</button></div>
             <div class="form-group"><label>作者分类</label><select id="impAuthor"></select></div>
             <div class="form-group"><label>功能分类</label><select id="impFunc"></select></div>
-            <div class="form-group"><label>选择文件（支持 ZIP / DOCX / JSON / TXT）</label><input type="file" id="fileInput" multiple accept=".zip,.docx,.json,.txt,.md"></div>
-            <button class="btn-primary" onclick="handleFileImport()">确认导入</button>
+            <div class="form-group"><label>手写世界书名称（可选）</label><input type="text" id="manualWorldName" placeholder="例如：通用互动规则.txt"></div>
+            <div class="form-group"><label>手写世界书内容（可选）</label><textarea id="manualWorldContent" placeholder="直接在这里粘贴或编写世界书内容"></textarea></div>
+            <div class="form-group"><label>导入文件（支持 ZIP / DOCX / JSON / TXT / MD，可多选）</label><input type="file" id="fileInput" multiple accept=".zip,.docx,.json,.txt,.md"></div>
+            <button class="btn-primary" onclick="handleFileImport()">保存手写内容 / 确认导入文件</button>
+        </div>
+    </div>
+
+    <!-- 人设手写 / 文件导入 -->
+    <div class="modal-overlay" id="characterModal">
+        <div class="modal-box">
+            <div class="modal-header"><span>👤 添加人设</span><button class="close-btn" onclick="closeModal('characterModal')">✕</button></div>
+            <div class="form-group"><label>作者分类</label><select id="charAuthor"></select></div>
+            <div class="form-group"><label>功能分类</label><select id="charFunc"></select></div>
+            <div class="form-group"><label>手写人设名称（可选）</label><input id="charManualName" type="text" placeholder="例如：角色名称.txt"></div>
+            <div class="form-group"><label>手写人设内容（可选）</label><textarea id="charManualContent" placeholder="在这里直接编写人设内容"></textarea></div>
+            <div class="form-group"><label>导入人设文件（支持 ZIP / DOCX / JSON / TXT / MD，可多选）</label><input type="file" id="charFileInput" multiple accept=".zip,.docx,.json,.txt,.md"></div>
+            <button class="btn-primary" onclick="handleCharacterImport()">保存手写人设 / 导入文件</button>
         </div>
     </div>
 
@@ -277,6 +310,7 @@
             <div class="form-group"><label>文件名称</label><input type="text" id="editFileName"></div>
             <div class="form-group"><label>文件内容</label><textarea id="editFileContent"></textarea></div>
             <button class="btn-primary" onclick="saveFileEdit()">保存修改</button>
+            <div class="asset-actions"><button class="btn-primary" onclick="copyCurrentFile()">复制内容</button><button class="btn-primary" onclick="downloadCurrentFile()">下载文件</button></div>
             <button class="btn-primary btn-danger" onclick="deleteCurrentFile()">删除此文件</button>
         </div>
     </div>
@@ -323,7 +357,7 @@
                 <label>文件内容</label>
                 <textarea id="themeEditContent" spellcheck="false"></textarea>
             </div>
-            <div id="themePreviewArea" class="asset-preview"></div>
+<div id="themePreviewArea" class="asset-preview"></div>
 
             <div id="fontSampleArea" class="hidden">
                 <div class="form-group" style="margin-top:12px;">
@@ -366,6 +400,7 @@ abcdefghijklmnopqrstuvwxyz
             apis: [],
             files: [],
             categories: {
+                character: { authors: ['默认作者'], funcs: ['角色设定', '人物关系'] },
                 worldbook: { authors: ['默认作者'], funcs: ['通用设定', '文风增强'] },
                 theme: { authors: ['默认作者'], funcs: ['气泡美化', '状态栏'] },
                 font: { authors: ['默认作者'], funcs: ['手写体', '可爱体'] }
@@ -376,6 +411,7 @@ abcdefghijklmnopqrstuvwxyz
         db.apis ||= [];
         db.files ||= [];
         db.categories ||= {};
+        db.categories.character ||= { authors: ['默认作者'], funcs: ['角色设定', '人物关系'] };
         db.categories.worldbook ||= { authors: ['默认作者'], funcs: ['通用设定', '文风增强'] };
         db.categories.theme ||= { authors: ['默认作者'], funcs: ['气泡美化', '状态栏'] };
         db.categories.font ||= { authors: ['默认作者'], funcs: ['手写体', '可爱体'] };
@@ -403,7 +439,7 @@ abcdefghijklmnopqrstuvwxyz
         function escapeHTML(value) {
             return String(value ?? '').replace(/[&<>"']/g, ch => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;',
-                '"': '"', "'": '&#39;'
+                '"': '&quot;', "'": '&#39;'
             }[ch]));
         }
 
@@ -494,7 +530,7 @@ abcdefghijklmnopqrstuvwxyz
 
             container.innerHTML = renderCategoryBar(currentTab);
 
-            if (currentTab === 'worldbook') {
+            if (currentTab === 'worldbook' || currentTab === 'character') {
                 renderWorldbookList(container, keyword);
             } else {
                 renderThemeList(container, keyword, currentTab);
@@ -506,15 +542,17 @@ abcdefghijklmnopqrstuvwxyz
             const list = document.createElement('div');
             list.className = 'list-container';
 
+            const isCharacter = currentTab === 'character';
+            const sectionName = isCharacter ? '人设' : '世界书';
             list.innerHTML = `
-                <div class="file-card add-card" style="justify-content:center;padding:16px;cursor:pointer;" onclick="openImportModal()">
+                <div class="file-card add-card" style="justify-content:center;padding:16px;cursor:pointer;" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
                     <span style="font-size:1.2rem;margin-right:6px;">＋</span>
-                    <span>导入世界书（ZIP自动解压 / DOCX防乱码）</span>
+                    <span>手写 / 导入${sectionName}（支持多文件）</span>
                 </div>
-                <div class="hint-text">💡 点击文件可编辑，长按文件卡片可重新分配分类</div>`;
+                <div class="hint-text">💡 每个文件均可单独编辑、复制、下载；长按文件卡片可重新分配分类</div>`;
 
             db.files.filter(f => {
-                if (f.section !== 'worldbook') return false;
+                if (f.section !== currentTab) return false;
                 if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
                 if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
                 if (keyword &&
@@ -526,7 +564,7 @@ abcdefghijklmnopqrstuvwxyz
                 card.className = 'file-card';
                 card.innerHTML = `
                     <div class="file-info">
-                        <div class="file-name">📄 ${escapeHTML(f.name)}</div>
+                        <div class="file-name">${isCharacter ? "👤" : "📄"} ${escapeHTML(f.name)}</div>
                         <div class="file-tags">
                             <span class="file-tag">✍️ ${escapeHTML(f.author)}</span>
                             <span class="file-tag">🏷️ ${escapeHTML(f.func)}</span>
@@ -581,8 +619,8 @@ abcdefghijklmnopqrstuvwxyz
                             <span class="file-tag">🏷️ ${escapeHTML(asset.func)}</span>
                             <span class="file-tag">${escapeHTML(asset.kind.toUpperCase())}</span>
                         </div>
-                    </div>
-                    <span style="color:var(--accent-caramel);font-size:0.85rem;">预览 ›</span>`;
+</div>
+<span style="color:var(--accent-caramel);font-size:0.85rem;">预览 ›</span>`;
 
                 bindLongPress(
                     card,
@@ -644,20 +682,64 @@ abcdefghijklmnopqrstuvwxyz
         }
 
         /* 小手机 */
+        let phoneIconData = '';
+
+        function openPhoneIconOptions() {
+            document.getElementById('pIconOptions').classList.toggle('hidden');
+        }
+
+        function setPhoneIconByUrl() {
+            const url = prompt('请输入图片 URL：', document.getElementById('pIcon').value || '');
+            if (url === null) return;
+            document.getElementById('pIcon').value = url.trim();
+            document.getElementById('pIconOptions').classList.add('hidden');
+            previewPhoneIconUrl();
+        }
+
+        function handlePhoneIconFile(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) return alert('请选择图片文件。');
+            const reader = new FileReader();
+            reader.onload = event => {
+                phoneIconData = event.target.result;
+                document.getElementById('pIcon').value = '';
+                document.getElementById('pIconPreview').innerHTML = `<img src="${phoneIconData}" alt="图标预览">`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function previewPhoneIconUrl() {
+            const url = document.getElementById('pIcon').value.trim();
+            phoneIconData = '';
+            document.getElementById('pIconPreview').innerHTML = url ? `<img src="${escapeHTML(url)}" alt="图标预览" onerror="this.parentElement.textContent='＋'">` : '＋';
+        }
+
         function savePhone() {
             const name = document.getElementById('pName').value.trim();
             let url = document.getElementById('pUrl').value.trim();
-            const icon = document.getElementById('pIcon').value.trim();
+            const icon = phoneIconData || document.getElementById('pIcon').value.trim();
+            const entry = document.getElementById('pEntry').value;
             const pwd = document.getElementById('pPwd').value.trim();
 
             if (!name || !url) return alert('请填写名称和链接哦~');
             if (!url.startsWith('http')) url = 'https://' + url;
 
-            db.phones.push({ id: Date.now(), name, url, icon, pwd });
+            db.phones.push({ id: Date.now(), name, url, icon, entry, pwd });
             saveDB();
             closeModal('phoneModal');
             ['pName', 'pUrl', 'pIcon', 'pPwd'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('pEntry').value = '';
+            document.getElementById('pIconFile').value = '';
+            document.getElementById('pIconPreview').textContent = '＋';
+            phoneIconData = '';
             renderMain();
+        }
+
+        function copyField(id) {
+            const value = document.getElementById(id).value;
+            if (!value) return alert('这个输入框目前是空的。');
+            copyText(value);
         }
 
         /* API */
@@ -708,8 +790,9 @@ abcdefghijklmnopqrstuvwxyz
                 if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
                 if (item.baseUrl) detailsHtml += `<div>🌐 Base URL：${escapeHTML(item.baseUrl)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.baseUrl)})">复制</button></div>`;
                 if (item.key) detailsHtml += `<div>🗝️ API Key：${escapeHTML(item.key)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.key)})">复制</button></div>`;
-            } else if (item.pwd) {
-                detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
+            } else {
+                if (item.entry) detailsHtml += `<div>进入方式：${escapeHTML(item.entry)}</div>`;
+                if (item.pwd) detailsHtml += `<div>🔑 密码：${escapeHTML(item.pwd)} <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button></div>`;
             }
 
             document.getElementById('launchDetails').innerHTML = detailsHtml;
@@ -762,6 +845,8 @@ abcdefghijklmnopqrstuvwxyz
             document.getElementById('impFunc').innerHTML =
                 cats.funcs.map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
             document.getElementById('fileInput').value = '';
+            document.getElementById('manualWorldName').value = '';
+            document.getElementById('manualWorldContent').value = '';
             openModal('importFileModal');
         }
 
@@ -783,72 +868,87 @@ abcdefghijklmnopqrstuvwxyz
             });
         }
 
-        async function handleFileImport() {
-            const files = document.getElementById('fileInput').files;
-            if (!files.length) return alert('请选择文件！');
-
-            const author = document.getElementById('impAuthor').value;
-            const func = document.getElementById('impFunc').value;
-
-            for (const file of files) {
+        async function importContentFiles(fileList, section, author, func) {
+            for (const file of fileList) {
                 const lowerName = file.name.toLowerCase();
-
                 if (lowerName.endsWith('.zip')) {
                     try {
                         const zip = await JSZip.loadAsync(file);
-
                         for (const [relativePath, zipEntry] of Object.entries(zip.files)) {
                             if (zipEntry.dir || relativePath.startsWith('__MACOSX')) continue;
-
                             const cleanName = relativePath.split('/').pop();
                             if (!cleanName) continue;
-
                             let content = '';
-                            if (cleanName.toLowerCase().endsWith('.docx')) {
-                                content = await parseDocxArrayBuffer(await zipEntry.async('arraybuffer'));
-                            } else {
-                                content = await zipEntry.async('string');
-                            }
-
-                            db.files.push({
-                                id: Date.now() + Math.random(),
-                                section: 'worldbook',
-                                name: cleanName,
-                                author,
-                                func,
-                                content
-                            });
+                            if (cleanName.toLowerCase().endsWith('.docx')) content = await parseDocxArrayBuffer(await zipEntry.async('arraybuffer'));
+                            else content = await zipEntry.async('string');
+                            db.files.push({ id: Date.now() + Math.random(), section, name: cleanName, author, func, content });
                         }
                     } catch (e) {
-                        alert('解压失败：' + e.message);
+                        alert('ZIP 解压失败：' + e.message);
                     }
-                } else if (lowerName.endsWith('.docx')) {
-                    const content = await parseDocxArrayBuffer(await file.arrayBuffer());
-                    db.files.push({
-                        id: Date.now() + Math.random(),
-                        section: 'worldbook',
-                        name: file.name,
-                        author,
-                        func,
-                        content
-                    });
                 } else {
-                    const content = await readTextFile(file);
-                    db.files.push({
-                        id: Date.now() + Math.random(),
-                        section: 'worldbook',
-                        name: file.name,
-                        author,
-                        func,
-                        content
-                    });
+                    const content = lowerName.endsWith('.docx')
+                        ? await parseDocxArrayBuffer(await file.arrayBuffer())
+                        : await readTextFile(file);
+                    db.files.push({ id: Date.now() + Math.random(), section, name: file.name, author, func, content });
                 }
             }
+        }
 
+        async function handleFileImport() {
+            const files = document.getElementById('fileInput').files;
+            const author = document.getElementById('impAuthor').value;
+            const func = document.getElementById('impFunc').value;
+            const manualName = document.getElementById('manualWorldName').value.trim();
+            const manualContent = document.getElementById('manualWorldContent').value;
+            let added = false;
+
+            if (manualContent.trim()) {
+                db.files.push({ id: Date.now() + Math.random(), section: 'worldbook', name: manualName || '手写世界书.txt', author, func, content: manualContent });
+                added = true;
+            }
+            if (files.length) {
+                await importContentFiles(files, 'worldbook', author, func);
+                added = true;
+            }
+            if (!added) return alert('请手写内容或选择需要导入的文件。');
             saveDB();
             closeModal('importFileModal');
             renderMain();
-            alert('世界书导入完成！');
+            alert('世界书保存 / 导入完成！');
+        }
+
+        function openCharacterModal() {
+            const cats = db.categories.character;
+            document.getElementById('charAuthor').innerHTML = cats.authors.map(a => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join('');
+            document.getElementById('charFunc').innerHTML = cats.funcs.map(f => `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`).join('');
+            document.getElementById('charManualName').value = '';
+            document.getElementById('charManualContent').value = '';
+            document.getElementById('charFileInput').value = '';
+            openModal('characterModal');
+        }
+
+        async function handleCharacterImport() {
+            const files = document.getElementById('charFileInput').files;
+            const author = document.getElementById('charAuthor').value;
+            const func = document.getElementById('charFunc').value;
+            const manualName = document.getElementById('charManualName').value.trim();
+            const manualContent = document.getElementById('charManualContent').value;
+            let added = false;
+
+            if (manualContent.trim()) {
+                db.files.push({ id: Date.now() + Math.random(), section: 'character', name: manualName || '手写人设.txt', author, func, content: manualContent });
+                added = true;
+            }
+            if (files.length) {
+                await importContentFiles(files, 'character', author, func);
+                added = true;
+            }
+            if (!added) return alert('请手写人设内容或选择需要导入的文件。');
+            saveDB();
+            closeModal('characterModal');
+            renderMain();
+            alert('人设保存 / 导入完成！');
         }
 
         /* 世界书长按移动分类 */
@@ -859,7 +959,7 @@ abcdefghijklmnopqrstuvwxyz
             movingFileId = id;
             movingAssetId = null;
 
-            const cats = db.categories.worldbook;
+            const cats = db.categories[f.section] || db.categories.worldbook;
             document.getElementById('moveFileName').innerText = `📄 ${f.name}`;
             document.getElementById('moveAuthorSel').innerHTML =
                 cats.authors.map(a => `<option value="${escapeHTML(a)}" ${a === f.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
@@ -881,9 +981,6 @@ abcdefghijklmnopqrstuvwxyz
             document.getElementById('moveFileName').innerText = `📄 ${asset.name}`;
             document.getElementById('moveAuthorSel').innerHTML =
                 cats.authors.map(a => `<option value="${escapeHTML(a)}" ${a === asset.author ? 'selected' : ''}>${escapeHTML(a)}</option>`).join('');
-            document.getElementById('moveFuncSel').innerHTML =
-                cats.funcs.map(fn => `<option value="${escapeHTML(fn)}" ${fn === asset.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`).join('');
-
             openModal('moveCatModal');
         }
 
@@ -934,6 +1031,38 @@ abcdefghijklmnopqrstuvwxyz
             }
         }
 
+        async function copyCurrentFile() {
+            const content = document.getElementById('editFileContent').value;
+            try {
+                await navigator.clipboard.writeText(content);
+                alert('文件内容已复制！');
+            } catch (e) {
+                const area = document.getElementById('editFileContent');
+                area.focus();
+                area.select();
+                alert('自动复制失败，请使用系统复制功能。');
+            }
+        }
+
+        function downloadCurrentFile() {
+            const f = db.files.find(x => x.id === currentEditingFileId);
+            if (!f) return;
+            const downloadName = /\.docx$/i.test(f.name) ? f.name.replace(/\.docx$/i, '.txt') : f.name;
+            downloadTextFile(downloadName, document.getElementById('editFileContent').value);
+        }
+
+        function downloadTextFile(name, content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name || 'HappyHome.txt';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
         function deleteCurrentFile() {
             if (!confirm('确定要删除吗？')) return;
 
@@ -973,7 +1102,7 @@ abcdefghijklmnopqrstuvwxyz
                 let request;
                 if (mode === 'put') request = store.put(value);
                 if (mode === 'get') request = store.get(id);
-                if (mode === 'delete') request = store.delete(id);
+if (mode === 'delete') request = store.delete(id);
 
                 if (request) {
                     request.onsuccess = () => resolve(request.result);
