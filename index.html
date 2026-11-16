@@ -1745,7 +1745,46 @@
             });
         };
 
+/* ===== 补丁：分类加号改用页面面板新建分类 + 分类栏整体缩小 ===== */
+        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: `
+.sub-category-bar{gap:4px;padding:6px 8px;border-radius:12px;margin-bottom:8px}
+.cat-row{gap:4px}
+.cat-label{font-size:.68rem}
+.cat-chip{padding:2px 7px;border-radius:9px;font-size:.7rem}
+.cat-add-btn{padding:2px 7px;border-radius:8px;font-size:.72rem}
+.sub-category-bar .hint-text{font-size:.66rem;margin-top:2px}
+` }));
 
+        document.body.insertAdjacentHTML('beforeend', `
+<div class="modal-overlay" id="newCatModal">
+    <div class="modal-box">
+        <div class="modal-header"><span>➕ 新建分类</span><button class="close-btn" onclick="closeModal('newCatModal')">✕</button></div>
+        <div class="form-group"><label>分类名称</label><input type="text" id="newCatName" placeholder="输入新分类名称"></div>
+        <button type="button" class="btn-primary" onclick="saveNewCat()">保存</button>
+    </div>
+</div>
+`);
+
+        let _catSection = null, _catType = null;
+        const _addCat = addCat;
+        addCat = function (section, type) {
+            _catSection = section;
+            _catType = type;
+            document.getElementById('newCatName').value = '';
+            openModal('newCatModal');
+            setTimeout(() => document.getElementById('newCatName').focus(), 100);
+        };
+        function saveNewCat() {
+            const v = document.getElementById('newCatName').value.trim();
+            if (!v) return toast('请输入分类名称');
+            const arr = catArr(_catSection, _catType);
+            if (arr.includes(v)) return toast('已有同名分类');
+            arr.push(v);
+            saveDB(); closeModal('newCatModal'); renderMain(); toast('已添加分类');
+        }
+        document.getElementById('newCatModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('newCatModal')) closeModal('newCatModal');
+        });
         renderMain();
     </script>
 </body>
