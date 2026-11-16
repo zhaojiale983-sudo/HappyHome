@@ -1443,6 +1443,257 @@
         // 切走再回来时，下一次点击自动恢复全屏（你自己手动退出全屏时不会强拉回去）
         document.addEventListener('visibilitychange', () => { if (document.hidden) hhFsPending = true; });
         ['click', 'touchend'].forEach(t => document.addEventListener(t, () => { if (hhFsPending) { hhFsPending = false; goFullscreen(); } }, { passive: true }));
+
+    /* ===== 补丁：小手机 / API 长按菜单 + 编辑模式（继续编辑 · 可复制） ===== */
+        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: `
+.hh-sheet-mask{position:fixed;inset:0;background:rgba(92,75,59,.42);z-index:399;opacity:0;pointer-events:none;transition:opacity .22s}
+.hh-sheet-mask.show{opacity:1;pointer-events:auto}
+.hh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:400;background:var(--bg-cream);border-top-left-radius:20px;border-top-right-radius:20px;
+  padding:10px 12px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 24px rgba(92,75,59,.18);
+  transform:translateY(104%);transition:transform .26s ease;max-height:80vh;overflow-y:auto}
+.hh-sheet.show{transform:translateY(0)}
+.hh-sheet-title{padding:8px 4px 10px;font-weight:bold;font-size:.92rem;color:var(--text-brown);text-align:center;border-bottom:1px dashed var(--border-soft);margin-bottom:8px;word-break:break-all}
+.hh-sheet-btn{display:block;width:100%;margin:6px 0;padding:12px 16px;border-radius:14px;background:#fff;border:1.2px solid var(--border-soft);
+  font-weight:bold;font-size:.9rem;color:var(--text-brown);cursor:pointer;text-align:left;font-family:inherit}
+.hh-sheet-btn:active{background:var(--card-cream)}
+.hh-sheet-btn.primary{background:var(--accent-yellow);border-color:var(--accent-caramel);color:#4A3828}
+.hh-sheet-btn.danger{background:#FFE5E5;border-color:#F7C9C9;color:#D9534F}
+.hh-sheet-btn.cancel{background:var(--card-cream);text-align:center;padding-left:12px;margin-top:10px}
+` }));
+
+        document.body.insertAdjacentHTML('beforeend', `
+<div class="hh-sheet-mask" id="hhSheetMask"></div>
+<div class="hh-sheet" id="hhSheet">
+    <div class="hh-sheet-title" id="hhSheetTitle">操作</div>
+    <div id="hhSheetBtns"></div>
+    <button type="button" class="hh-sheet-btn cancel" id="hhSheetCancel">取消</button>
+</div>
+
+<div class="modal-overlay" id="editPhoneModal">
+    <div class="modal-box">
+        <div class="modal-header"><span>✏️ 编辑小手机</span><button class="close-btn" onclick="closeModal('editPhoneModal')">✕</button></div>
+        <div class="form-group"><label>手机类型</label><select id="epType"><option value="free">免费小手机</option><option value="paid">付费小手机</option></select></div>
+        <div class="form-group"><label>图标 URL（留空自动抓取）</label><div class="input-copy-row"><input type="url" id="epIcon" placeholder="https://..."><button type="button" class="mini-copy-btn" onclick="copyField('epIcon')">复制</button></div></div>
+        <div class="form-group"><label>名称</label><input type="text" id="epName" placeholder="例如：小手机一号"></div>
+        <div class="form-group"><label>链接</label><div class="input-copy-row"><input type="url" id="epUrl" placeholder="https://..."><button type="button" class="mini-copy-btn" onclick="copyField('epUrl')">复制</button></div></div>
+        <div class="form-group"><label>进入方式</label><select id="epEntry"><option value="">请选择（可选）</option><option value="邮箱">邮箱</option><option value="QQ">QQ</option><option value="DC">DC</option></select></div>
+        <div class="form-group"><label>密码</label><div class="input-copy-row"><input type="text" id="epPwd" placeholder="进入密码（可选）"><button type="button" class="mini-copy-btn" onclick="copyField('epPwd')">复制</button></div></div>
+        <button type="button" class="btn-primary" onclick="saveEditPhone()">保存修改</button>
+        <button type="button" class="btn-primary" style="background:var(--card-cream);" onclick="copyPhoneAll()">📋 复制全部信息</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editApiModal">
+    <div class="modal-box">
+        <div class="modal-header"><span>✏️ 编辑 API 站子</span><button class="close-btn" onclick="closeModal('editApiModal')">✕</button></div>
+        <div class="form-group"><label>分类</label><select id="eaCat"></select></div>
+        <div class="form-group"><label>名称</label><input type="text" id="eaName" placeholder="例如：中转站A"></div>
+        <div class="form-group"><label>地址链接</label><div class="input-copy-row"><input type="url" id="eaUrl" placeholder="https://..."><button type="button" class="mini-copy-btn" onclick="copyField('eaUrl')">复制</button></div></div>
+        <div class="form-group"><label>登录邮箱</label><div class="input-copy-row"><input type="email" id="eaEmail" placeholder="邮箱"><button type="button" class="mini-copy-btn" onclick="copyField('eaEmail')">复制</button></div></div>
+        <div class="form-group"><label>登录密码</label><div class="input-copy-row"><input type="text" id="eaPwd" placeholder="密码"><button type="button" class="mini-copy-btn" onclick="copyField('eaPwd')">复制</button></div></div>
+        <div class="form-group"><label>Base URL</label><div class="input-copy-row"><input type="text" id="eaBaseUrl" placeholder="https://..."><button type="button" class="mini-copy-btn" onclick="copyField('eaBaseUrl')">复制</button></div></div>
+        <div class="form-group"><label>API Key</label><div class="input-copy-row"><input type="text" id="eaKey" placeholder="sk-..."><button type="button" class="mini-copy-btn" onclick="copyField('eaKey')">复制</button></div></div>
+        <button type="button" class="btn-primary" onclick="saveEditApi()">保存修改</button>
+        <button type="button" class="btn-primary" style="background:var(--card-cream);" onclick="copyApiAll()">📋 复制全部信息</button>
+    </div>
+</div>
+`);
+    let currentEditPhoneId = null, currentEditApiId = null;
+
+        function hideSheet() {
+            document.getElementById('hhSheetMask').classList.remove('show');
+            document.getElementById('hhSheet').classList.remove('show');
+        }
+        function showSheet(title, list) {
+            const box = document.getElementById('hhSheetBtns');
+            document.getElementById('hhSheetTitle').textContent = title;
+            box.innerHTML = '';
+            list.forEach(o => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'hh-sheet-btn' + (o.cls ? ' ' + o.cls : '');
+                b.textContent = o.txt;
+                b.addEventListener('click', () => { hideSheet(); o.fn(); });
+                box.appendChild(b);
+            });
+            document.getElementById('hhSheetMask').classList.add('show');
+            document.getElementById('hhSheet').classList.add('show');
+        }
+        document.getElementById('hhSheetMask').addEventListener('click', hideSheet);
+        document.getElementById('hhSheetCancel').addEventListener('click', hideSheet);
+
+        // 长按菜单：编辑 / 多选 / 全选 / 移动 / 删除
+        function openCardMenu(type, id) {
+            const isPhone = type === 'phone';
+            const item = (isPhone ? db.phones : db.apis).find(x => x.id === id);
+            if (!item) return;
+            const list = [
+                { txt: '✏️ 编辑此项（继续编辑，字段可复制）', cls: 'primary', fn: () => isPhone ? openEditPhone(id) : openEditApi(id) },
+                { txt: '☑️ 多选此项（进入批量模式）', fn: () => startBatch(id) },
+                { txt: '✅ 全选本页', fn: () => {
+                        const vis = getVisible(document.getElementById('searchInput').value.trim().toLowerCase());
+                        isBatchMode = true; selectedIds.clear();
+                        vis.forEach(i => selectedIds.add(i.id));
+                        rerender(); toast('已全选本页');
+                    } },
+                { txt: isPhone ? (item.type === 'paid' ? '📁 移到免费小手机' : '📁 移到付费小手机') : '📁 移动 / 修改分类',
+                  fn: () => { selectedIds.clear(); selectedIds.add(id); isBatchMode = true; if (isPhone) batchMove(); else openBatchMoveModal(); } },
+                { txt: '🗑️ 删除此项', cls: 'danger', fn: () => {
+                        if (!confirm('确定删除「' + item.name + '」吗？')) return;
+                        if (isPhone) db.phones = db.phones.filter(x => x.id !== id);
+                        else db.apis = db.apis.filter(x => x.id !== id);
+                        saveDB(); renderMain(); toast('已删除');
+                    } }
+            ];
+            showSheet((isPhone ? '📱 ' : '🔌 ') + item.name, list);
+        }
+
+        const _renderGrid = renderGrid;
+        renderGrid = function (container, items) {
+            const isPhone = currentTab === 'phone';
+            const grid = el('div', 'grid-container');
+            if (!isBatchMode) {
+                const add = el('div', 'square-card add-card', '<div class="plus">＋</div><span>添加</span>');
+                add.addEventListener('click', () => openModal(isPhone ? 'phoneModal' : 'apiModal'));
+                grid.appendChild(add);
+            }
+            items.forEach(it => {
+                const card = el('div', 'square-card' + (selectedIds.has(it.id) ? ' selected' : ''));
+                const badge = isPhone ? (it.pwd ? '<span class="badge-pwd">🔑</span>' : '') : (it.key ? '<span class="badge-pwd">🗝️</span>' : '');
+                card.innerHTML = `${badge}<span class="sel-mark">✓</span><div class="square-icon">${resolveIcon(it, isPhone ? '📱' : '🔌')}</div><div class="square-title">${escapeHTML(it.name)}</div>`;
+                bindLongPress(card,
+                    () => { if (isBatchMode) toggleSelectId(it.id); else openCardMenu(isPhone ? 'phone' : 'api', it.id); },
+                    () => { if (isBatchMode) toggleSelectId(it.id); else openLaunchModal(isPhone ? 'phone' : 'api', it.id); });
+                grid.appendChild(card);
+            });
+            container.appendChild(grid);
+        };
+    function openEditPhone(id) {
+            const p = db.phones.find(x => x.id === id);
+            if (!p) return;
+            currentEditPhoneId = id;
+            document.getElementById('epType').value = p.type || 'free';
+            document.getElementById('epIcon').value = p.icon || '';
+            document.getElementById('epName').value = p.name || '';
+            document.getElementById('epUrl').value = p.url || '';
+            document.getElementById('epEntry').value = p.entry || '';
+            document.getElementById('epPwd').value = p.pwd || '';
+            openModal('editPhoneModal');
+        }
+
+        function openEditApi(id) {
+            const a = db.apis.find(x => x.id === id);
+            if (!a) return;
+            currentEditApiId = id;
+            const cats = db.apiCats || ['默认分类'];
+            document.getElementById('eaCat').innerHTML = cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+            document.getElementById('eaCat').value = a.cat || cats[0];
+            document.getElementById('eaName').value = a.name || '';
+            document.getElementById('eaUrl').value = a.url || '';
+            document.getElementById('eaEmail').value = a.email || '';
+            document.getElementById('eaPwd').value = a.pwd || '';
+            document.getElementById('eaBaseUrl').value = a.baseUrl || '';
+            document.getElementById('eaKey').value = a.key || '';
+            openModal('editApiModal');
+        }
+
+        function saveEditPhone() {
+            const p = db.phones.find(x => x.id === currentEditPhoneId);
+            if (!p) return;
+            const name = document.getElementById('epName').value.trim();
+            let url = document.getElementById('epUrl').value.trim();
+            if (!name || !url) return alert('名称和链接不能为空');
+            if (!url.startsWith('http')) url = 'https://' + url;
+            p.name = name;
+            p.url = url;
+            p.icon = document.getElementById('epIcon').value.trim();
+            p.entry = document.getElementById('epEntry').value;
+            p.pwd = document.getElementById('epPwd').value.trim();
+            p.type = document.getElementById('epType').value || 'free';
+            saveDB(); closeModal('editPhoneModal'); renderMain(); toast('小手机已更新');
+        }
+
+        function saveEditApi() {
+            const a = db.apis.find(x => x.id === currentEditApiId);
+            if (!a) return;
+            const name = document.getElementById('eaName').value.trim();
+            let url = document.getElementById('eaUrl').value.trim();
+            if (!name || !url) return alert('名称和链接不能为空');
+            if (!url.startsWith('http')) url = 'https://' + url;
+            a.name = name;
+            a.url = url;
+            a.email = document.getElementById('eaEmail').value.trim();
+            a.pwd = document.getElementById('eaPwd').value.trim();
+            a.baseUrl = document.getElementById('eaBaseUrl').value.trim();
+            a.key = document.getElementById('eaKey').value.trim();
+            a.cat = document.getElementById('eaCat').value || (db.apiCats || ['默认分类'])[0];
+            saveDB(); closeModal('editApiModal'); renderMain(); toast('API 站子已更新');
+        }
+
+        function copyPhoneAll() {
+            const p = db.phones.find(x => x.id === currentEditPhoneId);
+            if (!p) return;
+            copyText([
+                '名称：' + p.name,
+                '链接：' + p.url,
+                p.entry ? '进入方式：' + p.entry : '',
+                p.pwd ? '密码：' + p.pwd : '',
+                p.icon ? '图标：' + p.icon : ''
+            ].filter(Boolean).join('\n'));
+        }
+
+        function copyApiAll() {
+            const a = db.apis.find(x => x.id === currentEditApiId);
+            if (!a) return;
+            copyText([
+                '名称：' + a.name,
+                '链接：' + a.url,
+                a.email ? '邮箱：' + a.email : '',
+                a.pwd ? '密码：' + a.pwd : '',
+                a.baseUrl ? 'Base URL：' + a.baseUrl : '',
+                a.key ? 'Key：' + a.key : ''
+            ].filter(Boolean).join('\n'));
+        }
+
+        // 点击卡片弹窗里也加一个「编辑此卡片」按钮
+        const _olm3 = openLaunchModal;
+        openLaunchModal = function (type, id) {
+            _olm3(type, id);
+            const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
+            if (!item) return;
+            const box = document.getElementById('browserButtons');
+            const copyBtn = box.lastElementChild;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'browser-btn';
+            b.style.cssText = 'grid-column:span 2;background:var(--card-cream);';
+            b.textContent = '✏️ 编辑此卡片（可复制字段）';
+            b.onclick = () => { closeModal('launchModal'); type === 'phone' ? openEditPhone(id) : openEditApi(id); };
+            box.insertBefore(b, copyBtn);
+
+            // 详情每一行后面都挂一个「复制」小按钮
+            const det = document.getElementById('launchDetails');
+            [...det.children].forEach(div => {
+                const raw = div.textContent || '';
+                const idx = raw.indexOf('：');
+                if (idx < 0) return;
+                const val = raw.slice(idx + 1).trim();
+                if (!val) return;
+                const cp = document.createElement('button');
+                cp.type = 'button';
+                cp.className = 'mini-copy-btn';
+                cp.textContent = '复制';
+                cp.dataset.u = val;
+                cp.addEventListener('click', e => { e.stopPropagation(); copyText(cp.dataset.u); });
+                div.appendChild(cp);
+            });
+        };
+
+        // 新弹窗支持点空白关闭
+        ['editPhoneModal', 'editApiModal'].forEach(id => {
+            const node = document.getElementById(id);
+            node.addEventListener('click', e => { if (e.target === node) closeModal(id); });
+        });
         renderMain();
     </script>
 </body>
