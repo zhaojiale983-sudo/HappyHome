@@ -116,18 +116,6 @@
             position: relative;
         }
 
-        .back-btn {
-            position: absolute;
-            left: 0;
-            top: 12px;
-            border: 1px solid var(--border-soft);
-            background: #fff;
-            color: var(--text-brown);
-            border-radius: 12px;
-            padding: 7px 10px;
-            font-size: .82rem;
-        }
-
         header h1 {
             margin: 0;
             font-size: 1.8rem;
@@ -388,6 +376,22 @@
             accent-color: var(--accent-caramel);
         }
 
+        /* 批量管理默认隐藏，只有长按文件进入选择模式后才显示 */
+        .list-container .bulk-bar { display: none; }
+        .list-container.selection-mode .bulk-bar { display: flex; }
+        .file-select { display: none; }
+        .selection-mode .file-select { display: block; }
+
+        .folder-empty-hint {
+            padding: 22px 14px;
+            text-align: center;
+            color: var(--text-light);
+            background: var(--card-cream);
+            border: 1px dashed var(--accent-caramel);
+            border-radius: 14px;
+            line-height: 1.7;
+        }
+
         .bulk-bar {
             display: flex;
             gap: 7px;
@@ -399,6 +403,8 @@
             padding: 8px;
             margin: 8px 0;
         }
+
+        .list-container.selection-mode .bulk-bar { display: flex; }
 
         .bulk-bar button {
             border: 1px solid var(--border-soft);
@@ -737,7 +743,6 @@
     </div>
 
     <header>
-        <button class="back-btn" onclick="goBack()">‹ 返回</button>
         <h1><img src="https://i.ibb.co/jNcmRdK/retouch-2026111500295066.png" alt="logo"> HappyHome</h1>
     </header>
 
@@ -1100,6 +1105,7 @@ abcdefghijklmnopqrstuvwxyz
     let currentTab = 'phone';
     let selectedAuthor = '全部';
     let selectedFunc = '全部';
+    let selectionMode = false;
     let selectedPhoneType = 'free';
     let currentEditingFileId = null;
     let movingFileId = null;
@@ -1139,6 +1145,7 @@ abcdefghijklmnopqrstuvwxyz
         selectionSection = null;
         selectedAuthor = '全部';
         selectedFunc = '全部';
+        selectionMode = false;
         selectedPhoneType = 'free';
 
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1166,25 +1173,26 @@ abcdefghijklmnopqrstuvwxyz
     function renderCategoryBar(section) {
         const cats = db.categories[section];
         let html = `<div class="sub-category-bar">`;
+        html += `<div class="cat-row"><span class="cat-label">作者文件夹：</span>`;
+        html += `<span class="cat-chip ${selectedAuthor === '全部' ? 'active' : ''}" onclick="setFilter('author', '全部')">全部文件夹</span>`;
 
-        html += `<div class="cat-row"><span class="cat-label">按作者：</span>`;
-
-        ['全部', ...cats.authors].forEach(au => {
-            html += `<span class="cat-chip ${selectedAuthor === au ? 'active' : ''}"
-                onclick="setFilter('author', ${JSON.stringify(au)})">${escapeHTML(au)}</span>`;
+        cats.authors.forEach(au => {
+            html += `<span class="cat-chip ${selectedAuthor === au ? 'active' : ''}" onclick="setFilter('author', ${JSON.stringify(au)})">📁 ${escapeHTML(au)}</span>`;
         });
 
         html += `<button class="cat-add-btn" onclick="addCategory('authors')">＋</button></div>`;
 
-        html += `<div class="cat-row"><span class="cat-label">按功能：</span>`;
+        if (selectedAuthor !== '全部') {
+            html += `<div class="cat-row"><span class="cat-label">功能标签：</span>`;
 
-        ['全部', ...cats.funcs].forEach(fn => {
-            html += `<span class="cat-chip ${selectedFunc === fn ? 'active' : ''}"
-                onclick="setFilter('func', ${JSON.stringify(fn)})">${escapeHTML(fn)}</span>`;
-        });
+            ['全部', ...cats.funcs].forEach(fn => {
+                html += `<span class="cat-chip ${selectedFunc === fn ? 'active' : ''}" onclick="setFilter('func', ${JSON.stringify(fn)})">${escapeHTML(fn)}</span>`;
+            });
 
-        html += `<button class="cat-add-btn" onclick="addCategory('funcs')">＋</button></div></div>`;
+            html += `<button class="cat-add-btn" onclick="addCategory('funcs')">＋</button></div>`;
+        }
 
+        html += `</div>`;
         return html;
     }
 
@@ -1296,19 +1304,25 @@ abcdefghijklmnopqrstuvwxyz
             renderThemeList(container, keyword, currentTab);
         }
     }
-
     /* 世界书、人设列表 */
     function renderWorldbookList(container, keyword) {
         const list = document.createElement('div');
-        list.className = 'list-container';
-
+        list.className = 'list-container' + (selectionMode ? ' selection-mode' : '');
         const isCharacter = currentTab === 'character';
         const sectionName = isCharacter ? '人设' : '世界书';
 
-        const records = db.files.filter(f => {
-            if (f.section !== currentTab) return false;
+        // 未进入作者文件夹时只显示文件夹，不把所有文件混在首页。
+        if (selectedAuthor === '全部') {
+            const hint = document.createElement('div');
+            hint.className = 'folder-empty-hint';
+            hint.innerHTML = `📁 请选择上方作者文件夹查看${sectionName}。<br>文件只会显示在所属文件夹内。`;
+            list.appendChild(hint);
+            container.appendChild(list);
+            return;
+        }
 
-            if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
+        const records = db.files.filter(f => {
+            if (f.section !== currentTab || f.author !== selectedAuthor) return false;
             if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
 
             if (keyword &&
@@ -1321,9 +1335,7 @@ abcdefghijklmnopqrstuvwxyz
         });
 
         list.innerHTML = `
-            <div class="file-card add-card"
-                style="justify-content:center;padding:12px;cursor:pointer;"
-                onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
+            <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
                 <span style="font-size:1.1rem;margin-right:6px;">＋</span>
                 <span>手写 / 导入${sectionName}</span>
             </div>
@@ -1332,12 +1344,11 @@ abcdefghijklmnopqrstuvwxyz
                 <button onclick="toggleSelectAll('files')">全选 / 取消全选</button>
                 <button onclick="bulkMoveFiles()">批量移动分类</button>
                 <button onclick="bulkDelete('files')">删除所选</button>
-                <span>已选 <b id="selectedCount">0</b> 项</span>
+                <button onclick="exitSelectionMode()">完成</button>
+                <span>已选 <b id="selectedCount">${selectedItems.size}</b> 项</span>
             </div>
 
-            <div class="hint-text">
-                长按文件可选择删除或移动；也可勾选多项批量管理。点击文件可编辑。
-            </div>`;
+            <div class="hint-text">长按文件可进入批量管理；普通点击文件可编辑。</div>`;
 
         records.forEach(f => {
             const card = document.createElement('div');
@@ -1351,10 +1362,7 @@ abcdefghijklmnopqrstuvwxyz
                     aria-label="选择文件">
 
                 <div class="file-info">
-                    <div class="file-name">
-                        ${isCharacter ? '👤' : '📄'} ${escapeHTML(f.name)}
-                    </div>
-
+                    <div class="file-name">${isCharacter ? '👤' : '📄'} ${escapeHTML(f.name)}</div>
                     <div class="file-tags">
                         <span class="file-tag">✍️ ${escapeHTML(f.author || '')}</span>
                         <span class="file-tag">🏷️ ${escapeHTML(f.func || '')}</span>
@@ -1375,8 +1383,27 @@ abcdefghijklmnopqrstuvwxyz
 
             bindLongPress(
                 card,
-                () => showFileLongMenu(f.id),
-                () => openEditFile(f.id)
+                () => {
+                    selectionMode = true;
+                    selectionSection = 'files';
+                    selectedItems.add(String(f.id));
+                    renderMain();
+                },
+                () => {
+                    if (selectionMode) {
+                        const key = String(f.id);
+
+                        if (selectedItems.has(key)) {
+                            selectedItems.delete(key);
+                        } else {
+                            selectedItems.add(key);
+                        }
+
+                        renderMain();
+                    } else {
+                        openEditFile(f.id);
+                    }
+                }
             );
 
             list.appendChild(card);
@@ -1390,7 +1417,7 @@ abcdefghijklmnopqrstuvwxyz
     function renderThemeList(container, keyword, section) {
         const isFont = section === 'font';
         const list = document.createElement('div');
-        list.className = 'list-container';
+        list.className = 'list-container' + (selectionMode ? ' selection-mode' : '');
 
         const records = db.themeAssets.filter(asset => {
             if (asset.section !== section) return false;
@@ -1467,8 +1494,27 @@ abcdefghijklmnopqrstuvwxyz
 
             bindLongPress(
                 card,
-                () => showAssetLongMenu(asset.id),
-                () => openThemePreview(asset.id)
+                () => {
+                    selectionMode = true;
+                    selectionSection = 'assets';
+                    selectedItems.add(String(asset.id));
+                    renderMain();
+                },
+                () => {
+                    if (selectionMode) {
+                        const key = String(asset.id);
+
+                        if (selectedItems.has(key)) {
+                            selectedItems.delete(key);
+                        } else {
+                            selectedItems.add(key);
+                        }
+
+                        renderMain();
+                    } else {
+                        openThemePreview(asset.id);
+                    }
+                }
             );
 
             list.appendChild(card);
@@ -1477,6 +1523,7 @@ abcdefghijklmnopqrstuvwxyz
         container.appendChild(list);
         updateSelectedCount();
     }
+
     let selectedCardIds = new Set();
 
     function toggleSelectAllCards(kind) {
@@ -1549,7 +1596,6 @@ abcdefghijklmnopqrstuvwxyz
 
     function toggleOneSelected(kind, id, checked) {
         selectionSection = kind;
-
         const key = String(id);
 
         if (checked) {
@@ -1594,7 +1640,6 @@ abcdefghijklmnopqrstuvwxyz
         selectionSection = kind;
         renderMain();
     }
-
     function bulkDelete(kind) {
         if (!selectedItems.size) {
             return alert('请先选择需要删除的项目。');
@@ -1617,6 +1662,7 @@ abcdefghijklmnopqrstuvwxyz
         }
 
         selectedItems.clear();
+        selectionMode = false;
         saveDB();
         renderMain();
     }
@@ -1626,42 +1672,24 @@ abcdefghijklmnopqrstuvwxyz
             return alert('请先选择文件。');
         }
 
-        const chosen = db.files.filter(x => selectedItems.has(String(x.id)));
-
-        if (!chosen.length) return;
-
         const cats = db.categories[currentTab];
 
-        const author = prompt(
-            '移动到作者分类：',
-            chosen[0].author || cats.authors[0]
-        );
+        document.getElementById('moveFileName').textContent =
+            `已选择 ${selectedItems.size} 个文件`;
 
-        if (author === null) return;
+        document.getElementById('moveAuthorSel').innerHTML =
+            cats.authors.map(a =>
+                `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`
+            ).join('');
 
-        const func = prompt(
-            '移动到功能分类：',
-            chosen[0].func || cats.funcs[0]
-        );
+        document.getElementById('moveFuncSel').innerHTML =
+            cats.funcs.map(f =>
+                `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`
+            ).join('');
 
-        if (func === null) return;
+        movingFileId = [...selectedItems];
 
-        chosen.forEach(x => {
-            x.author = author;
-            x.func = func;
-        });
-
-        [author, func].forEach((v, i) => {
-            const arr = i ? cats.funcs : cats.authors;
-
-            if (v.trim() && !arr.includes(v.trim())) {
-                arr.push(v.trim());
-            }
-        });
-
-        selectedItems.clear();
-        saveDB();
-        renderMain();
+        openModal('moveCatModal');
     }
 
     function bulkMoveAssets() {
@@ -1669,41 +1697,68 @@ abcdefghijklmnopqrstuvwxyz
             return alert('请先选择文件。');
         }
 
-        const chosen = db.themeAssets.filter(x => selectedItems.has(String(x.id)));
-
-        if (!chosen.length) return;
-
         const cats = db.categories[currentTab];
 
-        const author = prompt(
-            '移动到作者分类：',
-            chosen[0].author || cats.authors[0]
-        );
+        document.getElementById('moveFileName').textContent =
+            `已选择 ${selectedItems.size} 个文件`;
 
-        if (author === null) return;
+        document.getElementById('moveAuthorSel').innerHTML =
+            cats.authors.map(a =>
+                `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`
+            ).join('');
 
-        const func = prompt(
-            '移动到功能分类：',
-            chosen[0].func || cats.funcs[0]
-        );
+        document.getElementById('moveFuncSel').innerHTML =
+            cats.funcs.map(f =>
+                `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`
+            ).join('');
 
-        if (func === null) return;
+        movingAssetId = [...selectedItems];
 
-        chosen.forEach(x => {
-            x.author = author;
-            x.func = func;
-        });
+        openModal('moveCatModal');
+    }
 
-        [author, func].forEach((v, i) => {
-            const arr = i ? cats.funcs : cats.authors;
+    function confirmMoveCategory() {
+        const author = document.getElementById('moveAuthorSel').value;
+        const func = document.getElementById('moveFuncSel').value;
 
-            if (v.trim() && !arr.includes(v.trim())) {
-                arr.push(v.trim());
-            }
-        });
+        if (movingFileId) {
+            const ids = Array.isArray(movingFileId)
+                ? movingFileId
+                : [movingFileId];
+
+            ids.forEach(id => {
+                const f = db.files.find(x => String(x.id) === String(id));
+
+                if (f) {
+                    f.author = author;
+                    f.func = func;
+                }
+            });
+
+            movingFileId = null;
+        }
+
+        if (movingAssetId) {
+            const ids = Array.isArray(movingAssetId)
+                ? movingAssetId
+                : [movingAssetId];
+
+            ids.forEach(id => {
+                const asset = db.themeAssets.find(x => String(x.id) === String(id));
+
+                if (asset) {
+                    asset.author = author;
+                    asset.func = func;
+                }
+            });
+
+            movingAssetId = null;
+        }
 
         selectedItems.clear();
+        selectionMode = false;
         saveDB();
+        closeModal('moveCatModal');
         renderMain();
     }
 
@@ -1772,17 +1827,22 @@ abcdefghijklmnopqrstuvwxyz
 
         element.addEventListener('touchstart', start, { passive: true });
         element.addEventListener('touchend', cancel);
+        element.addEventListener('touchcancel', cancel);
         element.addEventListener('touchmove', cancel);
         element.addEventListener('mousedown', start);
         element.addEventListener('mouseup', cancel);
         element.addEventListener('mouseleave', cancel);
+        element.addEventListener('contextmenu', event => event.preventDefault());
 
-        element.addEventListener('click', () => {
-            if (!isLongPress) {
-                clickAction();
+        element.addEventListener('click', event => {
+            if (isLongPress) {
+                event.preventDefault();
+                event.stopPropagation();
+                isLongPress = false;
+                return;
             }
 
-            isLongPress = false;
+            clickAction();
         });
     }
 
@@ -1805,12 +1865,22 @@ abcdefghijklmnopqrstuvwxyz
     function setFilter(type, val) {
         if (type === 'author') {
             selectedAuthor = val;
+            selectedFunc = '全部';
+            selectedItems.clear();
+            selectionMode = false;
         }
 
         if (type === 'func') {
             selectedFunc = val;
         }
 
+        renderMain();
+    }
+
+    function exitSelectionMode() {
+        selectionMode = false;
+        selectedItems.clear();
+        selectionSection = null;
         renderMain();
     }
 
@@ -1828,211 +1898,155 @@ abcdefghijklmnopqrstuvwxyz
 
     function setPhoneIconByUrl() {
         const url = prompt(
-            '请输入图片 URL：',
-            document.getElementById('pIcon').value || ''
+            '请输入图片 URL：'
         );
 
-        if (url === null) return;
+        if (url && url.trim()) {
+            document.getElementById('pIcon').value = url.trim();
+            previewPhoneIconUrl();
+        }
+    }
 
-        document.getElementById('pIcon').value = url.trim();
-        document.getElementById('pIconOptions').classList.add('hidden');
+    function previewPhoneIconUrl() {
+        const url = document.getElementById('pIcon').value.trim();
+        const preview = document.getElementById('pIconPreview');
 
-        previewPhoneIconUrl();
+        if (url) {
+            preview.innerHTML = `<img src="${escapeHTML(url)}" alt="icon">`;
+        } else {
+            preview.textContent = '＋';
+        }
     }
 
     function handlePhoneIconFile(input) {
-        const file = input.files && input.files[0];
+        const file = input.files[0];
 
         if (!file) return;
 
-        if (!file.type.startsWith('image/')) {
-            return alert('请选择图片文件。');
-        }
-
         const reader = new FileReader();
 
-        reader.onload = event => {
-            phoneIconData = event.target.result;
-
-            document.getElementById('pIcon').value = '';
-
+        reader.onload = () => {
+            phoneIconData = reader.result;
             document.getElementById('pIconPreview').innerHTML =
-                `<img src="${phoneIconData}" alt="图标预览">`;
+                `<img src="${phoneIconData}" alt="icon">`;
         };
 
         reader.readAsDataURL(file);
     }
 
-    function previewPhoneIconUrl() {
-        const url = document.getElementById('pIcon').value.trim();
-
-        phoneIconData = '';
-
-        document.getElementById('pIconPreview').innerHTML = url
-            ? `<img src="${escapeHTML(url)}" alt="图标预览" onerror="this.parentElement.textContent='＋'">`
-            : '＋';
-    }
-
     function savePhone() {
         const name = document.getElementById('pName').value.trim();
-        let url = document.getElementById('pUrl').value.trim();
-        const icon = phoneIconData || document.getElementById('pIcon').value.trim();
+        const url = document.getElementById('pUrl').value.trim();
         const entry = document.getElementById('pEntry').value;
-        const pwd = document.getElementById('pPwd').value.trim();
-        const type = document.getElementById('pType').value || 'free';
+        const pwd = document.getElementById('pPwd').value;
 
         if (!name || !url) {
-            return alert('请填写名称和链接哦~');
-        }
-
-        if (!url.startsWith('http')) {
-            url = 'https://' + url;
+            return alert('请填写名称和链接。');
         }
 
         db.phones.push({
             id: Date.now(),
             name,
             url,
-            icon,
             entry,
             pwd,
-            type
+            icon: phoneIconData || document.getElementById('pIcon').value.trim(),
+            type: selectedPhoneType
         });
 
         saveDB();
         closeModal('phoneModal');
-
-        ['pName', 'pUrl', 'pIcon', 'pPwd'].forEach(id => {
-            document.getElementById(id).value = '';
-        });
-
-        document.getElementById('pEntry').value = '';
-        document.getElementById('pType').value = 'free';
-        document.getElementById('pIconFile').value = '';
-        document.getElementById('pIconPreview').textContent = '＋';
-
-        phoneIconData = '';
-
         renderMain();
+
+        document.getElementById('pName').value = '';
+        document.getElementById('pUrl').value = '';
+        document.getElementById('pPwd').value = '';
+        document.getElementById('pIcon').value = '';
+        document.getElementById('pIconPreview').textContent = '＋';
+        phoneIconData = '';
     }
 
-    function copyField(id) {
-        const value = document.getElementById(id).value;
-
-        if (!value) {
-            return alert('这个输入框目前是空的。');
-        }
-
-        copyText(value);
-    }
-
-    /* API */
     function saveApi() {
         const name = document.getElementById('aName').value.trim();
-        let url = document.getElementById('aUrl').value.trim();
-        const email = document.getElementById('aEmail').value.trim();
-        const pwd = document.getElementById('aPwd').value.trim();
-        const baseUrl = document.getElementById('aBaseUrl').value.trim();
-        const key = document.getElementById('aKey').value.trim();
+        const url = document.getElementById('aUrl').value.trim();
 
-        if (!name || !url) {
-            return alert('请填写名称和地址链接哦~');
-        }
-
-        if (!url.startsWith('http')) {
-            url = 'https://' + url;
+        if (!name) {
+            return alert('请填写站子名称。');
         }
 
         db.apis.push({
             id: Date.now(),
             name,
             url,
-            email,
-            pwd,
-            baseUrl,
-            key
+            email: document.getElementById('aEmail').value,
+            pwd: document.getElementById('aPwd').value,
+            baseUrl: document.getElementById('aBaseUrl').value,
+            key: document.getElementById('aKey').value
         });
 
         saveDB();
         closeModal('apiModal');
+        renderMain();
 
         ['aName', 'aUrl', 'aEmail', 'aPwd', 'aBaseUrl', 'aKey'].forEach(id => {
             document.getElementById(id).value = '';
         });
-
-        renderMain();
     }
 
-    /* 永恒浏览器：APK 包名来自用户提供的 v0.9.8.7 安装包。
-       该 APK 注册了 http/https 的 VIEW 入口，没有声明自定义 URL scheme，
-       因此使用 Android intent:// 并指定 package 启动。 */
-    function buildEternalIntent(rawUrl) {
-        try {
-            const target = new URL(rawUrl);
+    function copyField(id) {
+        const input = document.getElementById(id);
 
-            if (target.protocol !== 'http:' && target.protocol !== 'https:') {
-                return rawUrl;
-            }
-
-            const fallback = encodeURIComponent(target.href);
-
-            return `intent://${target.host}${target.pathname}${target.search}#Intent;scheme=${target.protocol.slice(0, -1)};package=com.sevensix.everlasting;S.browser_fallback_url=${fallback};end`;
-        } catch (e) {
-            return rawUrl;
+        if (!input || !input.value) {
+            return alert('没有可复制的内容。');
         }
+
+        copyText(input.value);
     }
 
     function openLaunchModal(type, id) {
         const item = type === 'phone'
-            ? db.phones.find(x => x.id === id)
-            : db.apis.find(x => x.id === id);
+            ? db.phones.find(x => String(x.id) === String(id))
+            : db.apis.find(x => String(x.id) === String(id));
 
         if (!item) return;
 
-        document.getElementById('launchTitle').innerText = item.name;
+        const title = type === 'phone' ? '📱 ' : '🔌 ';
 
-        let detailsHtml = `
-            <div>
-                🔗链接：${escapeHTML(item.url)}
-                ${type === 'api'
-                    ? `<button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.url)})">复制</button>`
-                    : ''}
-            </div>`;
+        document.getElementById('launchTitle').textContent =
+            title + item.name;
 
-        if (type === 'api') {
-            if (item.email) {
-                detailsHtml += `
-                    <div>
-                        📧 登录邮箱：${escapeHTML(item.email)}
-                        <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.email)})">复制</button>
-                    </div>`;
-            }
+        let details = '';
 
-            if (item.pwd) {
-                detailsHtml += `
-                    <div>
-                        密码：🔑 ${escapeHTML(item.pwd)}
-                        <button class="mini-copy-btn" onclick="copyText(${JSON.stringify(item.pwd)})">复制</button>
-                    </div>`;
-            }
+        if (type === 'phone') {
+            details = `
+                <div><b>名称：</b>${escapeHTML(item.name)}</div>
+                <div><b>链接：</b>${escapeHTML(item.url)}</div>
+                <div><b>进入方式：</b>${escapeHTML(item.entry || '无')}</div>
+                <div><b>密码：</b>${escapeHTML(item.pwd || '无')}</div>`;
+        } else {
+            details = `
+                <div><b>名称：</b>${escapeHTML(item.name)}</div>
+                <div><b>地址：</b>${escapeHTML(item.url || '')}</div>
+                <div><b>邮箱：</b>${escapeHTML(item.email || '')}</div>
+                <div><b>密码：</b>${escapeHTML(item.pwd || '')}</div>
+                <div><b>Base URL：</b>${escapeHTML(item.baseUrl || '')}</div>
+                <div><b>API Key：</b>${escapeHTML(item.key || '')}</div>`;
         }
 
-        document.getElementById('launchDetails').innerHTML = detailsHtml;
+        document.getElementById('launchDetails').innerHTML = details;
 
-        const buttons = document.getElementById('browserButtons');
-
-        buttons.innerHTML = `
-            <a class="browser-btn" href="${escapeHTML(item.url)}" target="_blank">默认浏览器打开</a>
-            <a class="browser-btn" href="${buildEternalIntent(item.url)}">永恒浏览器打开</a>
+        document.getElementById('browserButtons').innerHTML = `
+            <a class="browser-btn" href="${escapeHTML(item.url || '#')}" target="_blank">🌐 默认浏览器</a>
+            <button class="browser-btn" onclick="copyText('${escapeHTML(item.url || '')}')">📋 复制链接</button>
         `;
 
         document.getElementById('deleteItemBtn').onclick = () => {
-            if (!confirm('确定删除这个卡片吗？')) return;
+            if (!confirm('确定删除此项目吗？')) return;
 
             if (type === 'phone') {
-                db.phones = db.phones.filter(x => x.id !== id);
+                db.phones = db.phones.filter(x => String(x.id) !== String(id));
             } else {
-                db.apis = db.apis.filter(x => x.id !== id);
+                db.apis = db.apis.filter(x => String(x.id) !== String(id));
             }
 
             saveDB();
@@ -2113,100 +2127,115 @@ abcdefghijklmnopqrstuvwxyz
 
     async function importContentFiles(files, section, author, func) {
         for (const file of files) {
-            const lowerName = file.name.toLowerCase();
+            if (/\.zip$/i.test(file.name)) {
+                const zip = await JSZip.loadAsync(file);
 
-            if (lowerName.endsWith('.zip')) {
-                try {
-                    const zip = await JSZip.loadAsync(file);
+                for (const path of Object.keys(zip.files)) {
+                    const entry = zip.files[path];
 
-                    for (const zipEntry of Object.values(zip.files)) {
-                        if (zipEntry.dir) continue;
+                    if (entry.dir) continue;
 
-                        const cleanName = zipEntry.name.split('/').pop();
+                    if (!/\.(docx|json|txt|md)$/i.test(path)) continue;
 
-                        if (!cleanName) continue;
+                    const content = await entry.async('uint8array');
+                    let text = '';
 
-                        const valid =
-                            /\.(docx|json|txt|md)$/i.test(cleanName);
-
-                        if (!valid) continue;
-
-                        let content = '';
-
-                        if (cleanName.toLowerCase().endsWith('.docx')) {
-                            content = await parseDocxArrayBuffer(
-                                await zipEntry.async('arraybuffer')
-                            );
-                        } else {
-                            content = await zipEntry.async('string');
-                        }
-
-                        db.files.push({
-                            id: Date.now() + Math.random(),
-                            section,
-                            name: cleanName,
-                            author,
-                            func,
-                            content
-                        });
+                    if (/\.docx$/i.test(path)) {
+                        text = await parseDocxArrayBuffer(content.buffer);
+                    } else {
+                        text = new TextDecoder('utf-8').decode(content);
                     }
-                } catch (e) {
-                    alert('ZIP 解压失败：' + e.message);
+
+                    db.files.push({
+                        id: Date.now() + Math.random(),
+                        name: path.split('/').pop(),
+                        content: text,
+                        section,
+                        author,
+                        func
+                    });
                 }
             } else {
-                const content = lowerName.endsWith('.docx')
-                    ? await parseDocxArrayBuffer(await file.arrayBuffer())
-                    : await readTextFile(file);
+                const content = await readTextFile(file);
 
                 db.files.push({
                     id: Date.now() + Math.random(),
-                    section,
                     name: file.name,
+                    content,
+                    section,
                     author,
-                    func,
-                    content
+                    func
                 });
             }
         }
     }
 
     async function handleFileImport() {
-        const files = document.getElementById('fileInput').files;
-        const author = document.getElementById('impAuthor').value;
-        const func = document.getElementById('impFunc').value;
+        const author = document.getElementById('impAuthor').value || '默认作者';
+        const func = document.getElementById('impFunc').value || '通用设定';
 
         const manualName = document.getElementById('manualWorldName').value.trim();
         const manualContent = document.getElementById('manualWorldContent').value;
 
-        let added = false;
+        const files = document.getElementById('fileInput').files;
 
         if (manualContent.trim()) {
             db.files.push({
                 id: Date.now() + Math.random(),
-                section: 'worldbook',
                 name: manualName || '手写世界书.txt',
+                content: manualContent,
+                section: 'worldbook',
                 author,
-                func,
-                content: manualContent
+                func
             });
-
-            added = true;
         }
 
         if (files.length) {
-            await importContentFiles(files, 'worldbook', author, func);
-            added = true;
-        }
-
-        if (!added) {
-            return alert('请手写内容或选择需要导入的文件。');
+            await importContentFiles(
+                [...files],
+                'worldbook',
+                author,
+                func
+            );
         }
 
         saveDB();
         closeModal('importFileModal');
         renderMain();
+    }
 
-        alert('世界书保存 / 导入完成！');
+    async function handleCharacterImport() {
+        const author = document.getElementById('charAuthor').value || '默认作者';
+        const func = document.getElementById('charFunc').value || '角色设定';
+
+        const manualName = document.getElementById('charManualName').value.trim();
+        const manualContent = document.getElementById('charManualContent').value;
+
+        const files = document.getElementById('charFileInput').files;
+
+        if (manualContent.trim()) {
+            db.files.push({
+                id: Date.now() + Math.random(),
+                name: manualName || '手写人设.txt',
+                content: manualContent,
+                section: 'character',
+                author,
+                func
+            });
+        }
+
+        if (files.length) {
+            await importContentFiles(
+                [...files],
+                'character',
+                author,
+                func
+            );
+        }
+
+        saveDB();
+        closeModal('characterModal');
+        renderMain();
     }
 
     function openCharacterModal() {
@@ -2229,415 +2258,136 @@ abcdefghijklmnopqrstuvwxyz
         openModal('characterModal');
     }
 
-    async function handleCharacterImport() {
-        const files = document.getElementById('charFileInput').files;
-        const author = document.getElementById('charAuthor').value;
-        const func = document.getElementById('charFunc').value;
-
-        const manualName = document.getElementById('charManualName').value.trim();
-        const manualContent = document.getElementById('charManualContent').value;
-
-        let added = false;
-
-        if (manualContent.trim()) {
-            db.files.push({
-                id: Date.now() + Math.random(),
-                section: 'character',
-                name: manualName || '手写人设.txt',
-                author,
-                func,
-                content: manualContent
-            });
-
-            added = true;
-        }
-
-        if (files.length) {
-            await importContentFiles(files, 'character', author, func);
-            added = true;
-        }
-
-        if (!added) {
-            return alert('请手写人设内容或选择需要导入的文件。');
-        }
-
-        saveDB();
-        closeModal('characterModal');
-        renderMain();
-
-        alert('人设保存 / 导入完成！');
-    }
-
-    /* 世界书长按移动分类 */
-    function openMoveCategoryModal(id) {
-        const f = db.files.find(x => x.id === id);
-
-        if (!f) return;
-
-        movingFileId = id;
-        movingAssetId = null;
-
-        const cats = db.categories[f.section] || db.categories.worldbook;
-
-        document.getElementById('moveFileName').innerText = `📄 ${f.name}`;
-
-        document.getElementById('moveAuthorSel').innerHTML =
-            cats.authors.map(a =>
-                `<option value="${escapeHTML(a)}" ${a === f.author ? 'selected' : ''}>${escapeHTML(a)}</option>`
-            ).join('');
-
-        document.getElementById('moveFuncSel').innerHTML =
-            cats.funcs.map(fn =>
-                `<option value="${escapeHTML(fn)}" ${fn === f.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`
-            ).join('');
-
-        openModal('moveCatModal');
-    }
-
-    function openMoveAssetCategoryModal(id) {
-        const asset = db.themeAssets.find(x => x.id === id);
-
-        if (!asset) return;
-
-        movingFileId = null;
-        movingAssetId = id;
-        movingAssetSection = asset.section;
-
-        const cats = db.categories[asset.section];
-
-        document.getElementById('moveFileName').innerText = `📄 ${asset.name}`;
-
-        document.getElementById('moveAuthorSel').innerHTML =
-            cats.authors.map(a =>
-                `<option value="${escapeHTML(a)}" ${a === asset.author ? 'selected' : ''}>${escapeHTML(a)}</option>`
-            ).join('');
-
-        document.getElementById('moveFuncSel').innerHTML =
-            cats.funcs.map(fn =>
-                `<option value="${escapeHTML(fn)}" ${fn === asset.func ? 'selected' : ''}>${escapeHTML(fn)}</option>`
-            ).join('');
-
-        openModal('moveCatModal');
-    }
-
-    function confirmMoveCategory() {
-        const author = document.getElementById('moveAuthorSel').value;
-        const func = document.getElementById('moveFuncSel').value;
-
-        if (movingAssetId !== null) {
-            const asset = db.themeAssets.find(x => x.id === movingAssetId);
-
-            if (asset) {
-                asset.author = author;
-                asset.func = func;
-            }
-        } else {
-            const f = db.files.find(x => x.id === movingFileId);
-
-            if (f) {
-                f.author = author;
-                f.func = func;
-            }
-        }
-
-        saveDB();
-
-        movingFileId = null;
-        movingAssetId = null;
-
-        closeModal('moveCatModal');
-        renderMain();
-    }
-
-    /* 世界书编辑 */
     function openEditFile(id) {
-        const f = db.files.find(x => x.id === id);
+        const file = db.files.find(x => String(x.id) === String(id));
 
-        if (!f) return;
+        if (!file) return;
 
         currentEditingFileId = id;
 
-        document.getElementById('editFileName').value = f.name;
-        document.getElementById('editFileContent').value = f.content;
+        document.getElementById('editFileName').value = file.name;
+        document.getElementById('editFileContent').value = file.content || '';
 
         openModal('editFileModal');
     }
 
     function saveFileEdit() {
-        const f = db.files.find(x => x.id === currentEditingFileId);
+        const file = db.files.find(x => String(x.id) === String(currentEditingFileId));
 
-        if (f) {
-            f.name = document.getElementById('editFileName').value.trim() || f.name;
-            f.content = document.getElementById('editFileContent').value;
+        if (!file) return;
 
-            saveDB();
-            closeModal('editFileModal');
-            renderMain();
-        }
-    }
-
-    async function copyCurrentFile() {
-        const content = document.getElementById('editFileContent').value;
-
-        try {
-            await navigator.clipboard.writeText(content);
-            alert('文件内容已复制！');
-        } catch (e) {
-            const area = document.getElementById('editFileContent');
-
-            area.focus();
-            area.select();
-
-            alert('自动复制失败，请使用系统复制功能。');
-        }
-    }
-
-    function downloadCurrentFile() {
-        const f = db.files.find(x => x.id === currentEditingFileId);
-
-        if (!f) return;
-
-        const downloadName = /\.docx$/i.test(f.name)
-            ? f.name.replace(/\.docx$/i, '.txt')
-            : f.name;
-
-        downloadTextFile(
-            downloadName,
-            document.getElementById('editFileContent').value
-        );
-    }
-
-    function downloadTextFile(name, content) {
-        const blob = new Blob(
-            [content],
-            { type: 'text/plain;charset=utf-8' }
-        );
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-
-        link.href = url;
-        link.download = name || 'HappyHome.txt';
-
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-
-        URL.revokeObjectURL(url);
-    }
-
-    function deleteCurrentFile() {
-        if (!confirm('确定要删除吗？')) return;
-
-        db.files = db.files.filter(x => x.id !== currentEditingFileId);
+        file.name = document.getElementById('editFileName').value.trim() || file.name;
+        file.content = document.getElementById('editFileContent').value;
 
         saveDB();
         closeModal('editFileModal');
         renderMain();
     }
 
-    /* 完整备份：包含 IndexedDB 中的美化/字体二进制文件 */
-    function blobToDataURL(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
+    function copyCurrentFile() {
+        const content = document.getElementById('editFileContent').value;
+        copyText(content);
+    }
 
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(reader.error);
+    function downloadCurrentFile() {
+        const name = document.getElementById('editFileName').value || '文件.txt';
+        const content = document.getElementById('editFileContent').value;
 
-            reader.readAsDataURL(blob);
+        downloadText(name, content);
+    }
+
+    function deleteCurrentFile() {
+        if (!confirm('确定删除这个文件吗？')) return;
+
+        db.files = db.files.filter(x =>
+            String(x.id) !== String(currentEditingFileId)
+        );
+
+        saveDB();
+        closeModal('editFileModal');
+        renderMain();
+    }
+
+    function downloadText(name, content) {
+        const blob = new Blob([content], {
+            type: 'text/plain;charset=utf-8'
         });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        a.href = url;
+        a.download = name;
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
     }
 
-    function dataURLToBlob(dataURL) {
-        const parts = dataURL.split(',');
+    function openMoveCategoryModal(id) {
+        const cats = db.categories[currentTab];
 
-        const mime =
-            (parts[0].match(/:(.*?);/) || [])[1] ||
-            'application/octet-stream';
+        movingFileId = id;
 
-        const binary = atob(parts[1] || '');
-        const bytes = new Uint8Array(binary.length);
+        document.getElementById('moveFileName').textContent =
+            '移动文件分类';
 
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+        document.getElementById('moveAuthorSel').innerHTML =
+            cats.authors.map(a =>
+                `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`
+            ).join('');
+
+        document.getElementById('moveFuncSel').innerHTML =
+            cats.funcs.map(f =>
+                `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`
+            ).join('');
+
+        const file = db.files.find(x => String(x.id) === String(id));
+
+        if (file) {
+            document.getElementById('moveAuthorSel').value = file.author;
+            document.getElementById('moveFuncSel').value = file.func;
         }
 
-        return new Blob([bytes], { type: mime });
+        openModal('moveCatModal');
     }
 
-    async function exportBackup() {
-        try {
-            const backup = {
-                version: 1,
-                exportedAt: new Date().toISOString(),
-                db: JSON.parse(JSON.stringify(db)),
-                assets: []
-            };
+    function openMoveAssetCategoryModal(id) {
+        const cats = db.categories[currentTab];
 
-            for (const asset of db.themeAssets) {
-                const stored = await themeDBAction('get', asset.id);
+        movingAssetId = id;
 
-                if (stored && stored.blob) {
-                    backup.assets.push({
-                        id: asset.id,
-                        name: stored.name || asset.name,
-                        type: stored.type || 'application/octet-stream',
-                        data: await blobToDataURL(stored.blob)
-                    });
-                }
-            }
+        document.getElementById('moveFileName').textContent =
+            '移动美化 / 字体文件分类';
 
-            const blob = new Blob(
-                [JSON.stringify(backup)],
-                { type: 'application/json;charset=utf-8' }
-            );
+        document.getElementById('moveAuthorSel').innerHTML =
+            cats.authors.map(a =>
+                `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`
+            ).join('');
 
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
+        document.getElementById('moveFuncSel').innerHTML =
+            cats.funcs.map(f =>
+                `<option value="${escapeHTML(f)}">${escapeHTML(f)}</option>`
+            ).join('');
 
-            link.href = url;
-            link.download = 'HappyHome完整备份.json';
+        const asset = db.themeAssets.find(x => String(x.id) === String(id));
 
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            URL.revokeObjectURL(url);
-
-            alert('备份导出成功！');
-        } catch (e) {
-            alert('备份导出失败：' + e.message);
-        }
-    }
-
-    async function importBackup() {
-        const input = document.getElementById('backupInput');
-        const file = input.files && input.files[0];
-
-        if (!file) {
-            return alert('请先选择备份文件。');
+        if (asset) {
+            document.getElementById('moveAuthorSel').value = asset.author;
+            document.getElementById('moveFuncSel').value = asset.func;
         }
 
-        if (!confirm('导入备份会覆盖当前数据，确定继续吗？')) {
-            return;
-        }
-
-        try {
-            const backup = JSON.parse(await file.text());
-
-            if (!backup.db) {
-                return alert('备份文件格式不正确。');
-            }
-
-            db = backup.db;
-
-            db.phones ||= [];
-            db.apis ||= [];
-            db.files ||= [];
-            db.themeAssets ||= [];
-
-            db.categories ||= {};
-
-            db.categories.character ||= {
-                authors: ['默认作者'],
-                funcs: ['角色设定', '人物关系']
-            };
-
-            db.categories.worldbook ||= {
-                authors: ['默认作者'],
-                funcs: ['通用设定', '文风增强']
-            };
-
-            db.categories.theme ||= {
-                authors: ['默认作者'],
-                funcs: ['气泡美化', '状态栏']
-            };
-
-            db.categories.font ||= {
-                authors: ['默认作者'],
-                funcs: ['手写体', '可爱体']
-            };
-
-            saveDB();
-
-            if (Array.isArray(backup.assets)) {
-                for (const item of backup.assets) {
-                    await themeDBAction('put', item.id, {
-                        name: item.name,
-                        type: item.type,
-                        blob: dataURLToBlob(item.data)
-                    });
-                }
-            }
-
-            renderMain();
-
-            alert('备份恢复成功！');
-        } catch (e) {
-            alert('备份导入失败：' + e.message);
-        }
-    }
-
-    /* 美化/字体 IndexedDB */
-    const THEME_DB_NAME = 'HappyHomeAssets';
-    const THEME_STORE_NAME = 'assets';
-
-    function themeDBAction(action, id, data) {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(THEME_DB_NAME, 1);
-
-            request.onupgradeneeded = event => {
-                const database = event.target.result;
-
-                if (!database.objectStoreNames.contains(THEME_STORE_NAME)) {
-                    database.createObjectStore(THEME_STORE_NAME);
-                }
-            };
-
-            request.onerror = () => reject(request.error);
-
-            request.onsuccess = () => {
-                const database = request.result;
-
-                const transaction = database.transaction(
-                    THEME_STORE_NAME,
-                    'readwrite'
-                );
-
-                const store = transaction.objectStore(THEME_STORE_NAME);
-
-                let req;
-
-                if (action === 'get') {
-                    req = store.get(id);
-                } else if (action === 'put') {
-                    req = store.put(data, id);
-                } else if (action === 'delete') {
-                    req = store.delete(id);
-                }
-
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-
-                transaction.oncomplete = () => database.close();
-            };
-        });
-    }
-
-    function getAssetKind(name) {
-        const lower = name.toLowerCase();
-
-        if (/\.(ttf|otf|woff|woff2)$/i.test(lower)) return 'font';
-        if (/\.css$/i.test(lower)) return 'css';
-        if (/\.(html|htm)$/i.test(lower)) return 'html';
-
-        return 'json';
+        openModal('moveCatModal');
     }
 
     function openThemeImportModal(section) {
+        movingAssetSection = section;
+
         const cats = db.categories[section];
 
-        document.getElementById('themeImportTitle').innerText =
+        document.getElementById('themeImportTitle').textContent =
             section === 'font' ? '🔤 导入字体文件' : '🎀 导入美化文件';
 
         document.getElementById('themeImpAuthor').innerHTML =
@@ -2652,301 +2402,176 @@ abcdefghijklmnopqrstuvwxyz
 
         document.getElementById('themeFileInput').value = '';
 
-        movingAssetSection = section;
-
         openModal('themeImportModal');
     }
 
     async function handleThemeImport() {
         const section = movingAssetSection;
-
-        const files = document.getElementById('themeFileInput').files;
         const author = document.getElementById('themeImpAuthor').value;
         const func = document.getElementById('themeImpFunc').value;
+        const files = [...document.getElementById('themeFileInput').files];
 
         if (!files.length) {
-            return alert('请先选择文件。');
+            return alert('请选择文件。');
         }
 
-        try {
-            for (const file of files) {
-                const id = Date.now() + Math.random();
-                const kind = getAssetKind(file.name);
+        for (const file of files) {
+            const isFont = /\.(ttf|otf|woff|woff2)$/i.test(file.name);
 
-                const asset = {
-                    id,
-                    section,
-                    name: file.name,
-                    author,
-                    func,
-                    kind,
-                    content: ''
-                };
+            let content = '';
 
-                if (kind === 'font') {
-                    await themeDBAction('put', id, {
-                        name: file.name,
-                        type: file.type || 'font/ttf',
-                        blob: file
-                    });
-                } else {
-                    asset.content = await file.text();
-
-                    await themeDBAction('put', id, {
-                        name: file.name,
-                        type: file.type || 'text/plain;charset=utf-8',
-                        blob: new Blob([asset.content], {
-                            type: file.type || 'text/plain;charset=utf-8'
-                        })
-                    });
-                }
-
-                db.themeAssets.push(asset);
+            if (!isFont) {
+                content = await readTextFile(file);
             }
 
-            saveDB();
-            closeModal('themeImportModal');
-            renderMain();
-
-            alert('文件导入成功！');
-        } catch (e) {
-            alert('文件导入失败：' + e.message);
+            db.themeAssets.push({
+                id: Date.now() + Math.random(),
+                name: file.name,
+                content,
+                file,
+                section,
+                author,
+                func,
+                kind: isFont ? 'font' :
+                    /\.css$/i.test(file.name) ? 'css' :
+                    /\.(html|htm)$/i.test(file.name) ? 'html' : 'json'
+            });
         }
+
+        saveDB();
+        closeModal('themeImportModal');
+        renderMain();
     }
 
-    async function openThemePreview(id) {
-        try {
-            const asset = db.themeAssets.find(x => x.id === id);
+    function openThemePreview(id) {
+        const asset = db.themeAssets.find(x => String(x.id) === String(id));
 
-            if (!asset) return;
+        if (!asset) return;
 
-            currentThemeAssetId = id;
-            themeEditorVisible = false;
+        currentThemeAssetId = id;
+        themeEditorVisible = false;
 
-            document.getElementById('themeEditName').value = asset.name;
+        document.getElementById('themeEditName').value = asset.name;
+        document.getElementById('themeEditContent').value = asset.content || '';
 
-            document.getElementById('themeTextEditor').classList.add('hidden');
-            document.getElementById('themeEditToggle').classList.toggle(
-                'hidden',
-                asset.kind === 'font'
-            );
+        document.getElementById('themeTextEditor').classList.add('hidden');
+        document.getElementById('fontSampleArea').classList.toggle('hidden', asset.kind !== 'font');
 
-            document.getElementById('themeEditToggle').innerText = '编辑文件内容';
+        const preview = document.getElementById('themePreviewArea');
 
-            document.getElementById('themePreviewArea').innerHTML = '';
-            document.getElementById('fontSampleArea').classList.add('hidden');
-
-            const stored = await themeDBAction('get', id);
-
-            if (!stored || !stored.blob) {
-                return alert('文件数据不存在。');
-            }
-
-            if (asset.kind === 'font') {
-                document.getElementById('fontSampleArea').classList.remove('hidden');
-
-                if (currentFontFace) {
-                    try {
-                        document.fonts.delete(currentFontFace);
-                    } catch (e) {}
-                }
-
-                if (currentFontObjectURL) {
-                    URL.revokeObjectURL(currentFontObjectURL);
-                }
-
-                currentFontObjectURL = URL.createObjectURL(stored.blob);
-
-                currentFontFace = new FontFace(
-                    'HappyHomeCustomFont',
-                    `url(${currentFontObjectURL})`
-                );
-
-                await currentFontFace.load();
-
-                document.fonts.add(currentFontFace);
-
-                document.getElementById('fontPreview').style.fontFamily =
-                    'HappyHomeCustomFont';
-
-                document.getElementById('fontPreview').innerText =
-                    document.getElementById('fontSampleText').value;
-
-                document.getElementById('themePreviewHint').innerText =
-                    '字体预览：可以修改下方文字查看效果。';
-            } else if (asset.kind === 'html') {
-                const iframe = document.createElement('iframe');
-
-                iframe.srcdoc = asset.content;
-
-                document.getElementById('themePreviewArea').appendChild(iframe);
-            } else {
-                const pre = document.createElement('pre');
-
-                if (asset.kind === 'json') {
-                    try {
-                        pre.textContent = JSON.stringify(
-                            JSON.parse(asset.content),
-                            null,
-                            2
-                        );
-                    } catch (e) {
-                        pre.textContent = asset.content;
-
-                        document.getElementById('themePreviewHint').innerText =
-                            'JSON 格式解析失败，当前显示原始文本。';
-                    }
-                } else {
-                    pre.textContent = asset.content;
-                }
-
-                document.getElementById('themePreviewArea').appendChild(pre);
-            }
-
-            openModal('themePreviewModal');
-        } catch (e) {
-            alert('预览失败：' + e.message);
+        if (asset.kind === 'html') {
+            preview.innerHTML = `<iframe sandbox="allow-same-origin" srcdoc="${escapeHTML(asset.content || '')}"></iframe>`;
+        } else {
+            preview.innerHTML = `<pre>${escapeHTML(asset.content || '字体文件不支持文本预览。')}</pre>`;
         }
-    }
 
-    document.getElementById('fontSampleText').addEventListener('input', function () {
-        document.getElementById('fontPreview').innerText = this.value;
-    });
+        document.getElementById('themePreviewTitle').textContent =
+            '📄 ' + asset.name;
+
+        openModal('themePreviewModal');
+    }
 
     function toggleThemeEditor() {
-        if (!currentThemeAssetId) return;
-
-        const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
-
-        if (!asset || asset.kind === 'font') return;
-
         themeEditorVisible = !themeEditorVisible;
 
         document.getElementById('themeTextEditor').classList.toggle(
             'hidden',
             !themeEditorVisible
         );
-
-        document.getElementById('themeEditToggle').innerText =
-            themeEditorVisible ? '收起内容编辑' : '编辑文件内容';
-
-        if (themeEditorVisible) {
-            document.getElementById('themeEditContent').value = asset.content;
-        }
     }
 
-    async function saveThemeAsset() {
-        const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
+    function saveThemeAsset() {
+        const asset = db.themeAssets.find(x => String(x.id) === String(currentThemeAssetId));
 
         if (!asset) return;
 
-        const newName = document.getElementById('themeEditName').value.trim();
+        asset.name = document.getElementById('themeEditName').value;
+        asset.content = document.getElementById('themeEditContent').value;
 
-        if (newName) {
-            asset.name = newName;
-        }
+        saveDB();
+        closeModal('themePreviewModal');
+        renderMain();
+    }
 
-        if (asset.kind !== 'font' && themeEditorVisible) {
-            asset.content = document.getElementById('themeEditContent').value;
+    function downloadThemeAsset() {
+        const asset = db.themeAssets.find(x => String(x.id) === String(currentThemeAssetId));
 
-            const stored = await themeDBAction('get', asset.id);
+        if (!asset) return;
 
-            if (stored) {
-                const blob = new Blob(
-                    [asset.content],
-                    {
-                        type: stored.type || 'text/plain;charset=utf-8'
-                    }
-                );
+        downloadText(asset.name, asset.content || '');
+    }
 
-                await themeDBAction('put', asset.id, {
-                    ...stored,
-                    blob,
-                    name: asset.name
-                });
-            }
-        } else if (asset.kind === 'font') {
-            const stored = await themeDBAction('get', asset.id);
+    function deleteThemeAsset() {
+        if (!confirm('确定删除此文件吗？')) return;
 
-            if (stored) {
-                await themeDBAction('put', asset.id, {
-                    ...stored,
-                    name: asset.name
-                });
-            }
+        db.themeAssets = db.themeAssets.filter(x =>
+            String(x.id) !== String(currentThemeAssetId)
+        );
+
+        saveDB();
+        closeModal('themePreviewModal');
+        renderMain();
+    }
+
+    function themeDBAction(action, id) {
+        if (action === 'delete') {
+            db.themeAssets = db.themeAssets.filter(x => String(x.id) !== String(id));
         }
 
         saveDB();
-
-        document.getElementById('themePreviewTitle').innerText = asset.name;
-
-        renderMain();
-
-        alert('保存成功！');
     }
 
-    async function downloadThemeAsset() {
-        const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
+    function exportBackup() {
+        const blob = new Blob([JSON.stringify(db, null, 2)], {
+            type: 'application/json;charset=utf-8'
+        });
 
-        if (!asset) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
 
-        try {
-            const stored = await themeDBAction('get', asset.id);
+        a.href = url;
+        a.download = 'HappyHome备份.json';
 
-            if (!stored || !stored.blob) {
-                return alert('文件数据不存在。');
-            }
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
 
-            const url = URL.createObjectURL(stored.blob);
-            const link = document.createElement('a');
-
-            link.href = url;
-            link.download = asset.name;
-
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
-        } catch (e) {
-            alert('下载失败：' + e.message);
-        }
+        URL.revokeObjectURL(url);
     }
 
-    async function deleteThemeAsset() {
-        if (!confirm('确定删除这个文件吗？')) return;
+    function importBackup() {
+        const input = document.getElementById('backupInput');
+        const file = input.files[0];
 
-        const asset = db.themeAssets.find(x => x.id === currentThemeAssetId);
-
-        if (!asset) return;
-
-        try {
-            await themeDBAction('delete', asset.id);
-
-            db.themeAssets = db.themeAssets.filter(
-                x => x.id !== currentThemeAssetId
-            );
-
-            saveDB();
-
-            if (currentFontFace) {
-                try {
-                    document.fonts.delete(currentFontFace);
-                } catch (e) {}
-
-                currentFontFace = null;
-            }
-
-            if (currentFontObjectURL) {
-                URL.revokeObjectURL(currentFontObjectURL);
-                currentFontObjectURL = null;
-            }
-
-            closeModal('themePreviewModal');
-            renderMain();
-        } catch (e) {
-            alert('删除失败：' + e.message);
+        if (!file) {
+            return alert('请先选择备份文件。');
         }
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+
+                if (!confirm('导入备份会覆盖当前数据，确定继续吗？')) return;
+
+                db = data;
+
+                db.phones ||= [];
+                db.apis ||= [];
+                db.files ||= [];
+                db.themeAssets ||= [];
+                db.categories ||= {};
+
+                saveDB();
+                alert('备份恢复成功！');
+                renderMain();
+            } catch (e) {
+                alert('备份文件格式不正确。');
+            }
+        };
+
+        reader.readAsText(file);
     }
 
     /* 通用弹窗 */
@@ -2965,80 +2590,6 @@ abcdefghijklmnopqrstuvwxyz
                 overlay.classList.remove('show');
             }
         });
-    });
-
-    /* 返回按钮与屏幕边缘右滑返回 */
-    function goBack() {
-        const openOverlay = [
-            ...document.querySelectorAll('.modal-overlay.show')
-        ].pop();
-
-        if (openOverlay) {
-            openOverlay.classList.remove('show');
-            return;
-        }
-
-        if (tabHistory.length > 1) {
-            tabHistory.pop();
-
-            const previous =
-                tabHistory[tabHistory.length - 1] || 'phone';
-
-            currentTab = previous;
-
-            selectedAuthor = '全部';
-            selectedFunc = '全部';
-
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('active');
-            });
-
-            const tabButton = [
-                ...document.querySelectorAll('.tab-btn')
-            ].find(b =>
-                (b.getAttribute('onclick') || '').includes(`'${previous}'`)
-            );
-
-            if (tabButton) {
-                tabButton.classList.add('active');
-            }
-
-            renderMain();
-        } else {
-            currentTab = 'phone';
-            renderMain();
-        }
-    }
-
-    document.addEventListener('touchstart', event => {
-        const t = event.changedTouches[0];
-
-        touchStartX = t.clientX;
-        touchStartY = t.clientY;
-    }, { passive: true });
-
-    document.addEventListener('touchend', event => {
-        const t = event.changedTouches[0];
-
-        const dx = t.clientX - touchStartX;
-        const dy = t.clientY - touchStartY;
-
-        if (
-            touchStartX <= 28 &&
-            dx > 85 &&
-            Math.abs(dy) < 70
-        ) {
-            event.preventDefault();
-            goBack();
-        }
-    }, { passive: false });
-
-    // 兼容 Android 系统返回键 / 浏览器历史返回
-    history.pushState({ happyhome: true }, '');
-
-    window.addEventListener('popstate', () => {
-        goBack();
-        history.pushState({ happyhome: true }, '');
     });
 
     /* 初始化 */
