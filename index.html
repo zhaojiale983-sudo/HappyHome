@@ -1122,7 +1122,114 @@
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
         });
+function renderWorldbookList(container, keyword) {
+            const list = document.createElement('div');
+            list.className = 'list-container';
+            const isCharacter = currentTab === 'character';
+            const sectionName = isCharacter ? '人设' : '世界书';
 
+            let toolbarHTML = `
+                <div class="batch-toolbar">
+                    <div>
+                        <button class="batch-btn-sel" onclick="toggleBatchMode()">${isBatchMode ? '退出多选' : '📋 多选操作'}</button>
+                        ${isBatchMode ? `<span style="margin-left:6px">已选 ${selectedIds.size} 项</span>` : ''}
+                    </div>`;
+            if (isBatchMode && selectedIds.size > 0) {
+                toolbarHTML += `
+                    <div>
+                        <button class="batch-btn-move" onclick="openBatchMoveModal()">移动分类</button>
+                        <button class="batch-btn-del" onclick="batchDeleteFiles()">批量删除</button>
+                    </div>`;
+            }
+            toolbarHTML += `</div>`;
+
+            list.innerHTML = toolbarHTML + `
+                <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="${isCharacter ? 'openCharacterModal()' : 'openImportModal()'}">
+                    <span style="font-size:1.1rem;margin-right:6px;">＋</span>
+                    <span>手写 / 导入${sectionName}</span>
+                </div>
+                <div class="hint-text">💡 长按文件卡片可单项移动分类或删除</div>`;
+
+            const filtered = db.files.filter(f => {
+                if (f.section !== currentTab) return false;
+                if (selectedAuthor !== '全部' && f.author !== selectedAuthor) return false;
+                if (selectedFunc !== '全部' && f.func !== selectedFunc) return false;
+                if (keyword && !(f.name || '').toLowerCase().includes(keyword) && !(f.content || '').toLowerCase().includes(keyword)) return false;
+                return true;
+            });
+
+            filtered.forEach(f => {
+                const card = document.createElement('div');
+                card.className = `file-card ${selectedIds.has(f.id) ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="file-info">
+                        ${isBatchMode ? `<input type="checkbox" class="file-checkbox" ${selectedIds.has(f.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectId(${f.id})">` : ''}
+                        <div style="overflow:hidden">
+                            <div class="file-name">${isCharacter ? "👤" : "📄"} ${escapeHTML(f.name)}</div>
+                            <div class="file-tags">
+                                <span class="file-tag">✍️ ${escapeHTML(f.author)}</span>
+                                <span class="file-tag">🏷️ ${escapeHTML(f.func)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span style="color:var(--accent-caramel);font-size:0.8rem;">编辑 ›</span>`;
+                
+                bindLongPress(card, () => openMoveCategoryModal(f.id), () => {
+                    if (isBatchMode) { toggleSelectId(f.id); } else { openEditFile(f.id); }
+                });
+                list.appendChild(card);
+            });
+            container.appendChild(list);
+        }
+
+        function renderThemeList(container, keyword, section) {
+            const isFont = section === 'font';
+            const list = document.createElement('div');
+            list.className = 'list-container';
+
+            let toolbarHTML = `
+                <div class="batch-toolbar">
+                    <div>
+                        <button class="batch-btn-sel" onclick="toggleBatchMode()">${isBatchMode ? '退出多选' : '📋 多选操作'}</button>
+                        ${isBatchMode ? `<span style="margin-left:6px">已选 ${selectedIds.size} 项</span>` : ''}
+                    </div>`;
+            if (isBatchMode && selectedIds.size > 0) {
+                toolbarHTML += `
+                    <div>
+                        <button class="batch-btn-move" onclick="openBatchMoveModal()">移动分类</button>
+                        <button class="batch-btn-del" onclick="batchDeleteFiles()">批量删除</button>
+                    </div>`;
+            }
+            toolbarHTML += `</div>`;
+
+            list.innerHTML = toolbarHTML + `
+                <div class="file-card add-card" style="justify-content:center;padding:12px;cursor:pointer;" onclick="openThemeImportModal('${section}')">
+                    <span style="font-size:1.1rem;margin-right:6px;">＋</span>
+                    <span>导入${isFont ? '字体文件' : '美化文件'}</span>
+                </div>`;
+
+            db.themeAssets.filter(asset => {
+                if (asset.section !== section) return false;
+                if (selectedAuthor !== '全部' && asset.author !== selectedAuthor) return false;
+                if (selectedFunc !== '全部' && asset.func !== selectedFunc) return false;
+                if (keyword && !(asset.name || '').toLowerCase().includes(keyword)) return false;
+                return true;
+            }).forEach(asset => {
+                const card = document.createElement('div');
+                card.className = `file-card ${selectedIds.has(asset.id) ? 'selected' : ''}`;
+                const icon = asset.kind === 'font' ? '🔤' : asset.kind === 'css' ? '🎨' : '🌐';
+                card.innerHTML = `
+                    <div class="file-info">
+                        ${isBatchMode ? `<input type="checkbox" class="file-checkbox" ${selectedIds.has(asset.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectId('${asset.id}')">` : ''}
+                        <div style="overflow:hidden">
+                            <div class="file-name">${icon} ${escapeHTML(asset.name)}</div>
+                            <div class="file-tags"><span class="file-tag">✍️ ${escapeHTML(asset.author)}</span><span class="file-tag">🏷️ ${escapeHTML(asset.func)}</span></div>
+                        </div>
+                    </div><span style="color:var(--accent-caramel);font-size:0.8rem;">预览 ›</span>`;
+                
+                bindLongPress(card, () => openMoveAssetCategoryModal(asset.id), () => {
+                    if (isBatchMode) { toggleSelectId(asset.id); } else { openThemePreview(asset.id); }
+                });
         renderMain();
     </script>
 </body>
