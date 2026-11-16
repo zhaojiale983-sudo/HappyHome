@@ -1860,6 +1860,77 @@ openLaunchModal = function (type, id) {
         }
     }
 };
+    /* ===== 补丁：移除内嵌全屏按钮 + 复制替换为轻量toast，删除alert弹窗 ===== */
+{
+    // 1. 移除内嵌全屏打开功能，重写openInFrame空实现
+    openInFrame = function(){};
+
+    // 2. 重写copyText，把alert改为toast
+    const origCopyText = copyText;
+    copyText = async function(txt) {
+        try {
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(txt);
+                toast("已复制");
+            } else {
+                toast("复制不支持");
+            }
+        } catch(e) {
+            toast("复制失败");
+        }
+    };
+
+    // 3. 重写openLaunchModal，删掉【全屏打开（内嵌）】按钮
+    const _olm5 = openLaunchModal;
+    openLaunchModal = function (type, id) {
+        _olm5(type, id);
+        const box = document.getElementById('browserButtons');
+        // 遍历删除内嵌全屏按钮
+        const btns = [...box.querySelectorAll('.browser-btn')];
+        for(const b of btns){
+            if(b.textContent.includes('全屏打开（内嵌）')){
+                b.remove();
+                break;
+            }
+        }
+    };
+
+    // 4. 清理编辑弹窗里原来alert的地方，全部改用toast
+    const origSaveEditPhone = saveEditPhone;
+    saveEditPhone = function(){
+        const p = db.phones.find(x => x.id === currentEditPhoneId);
+        if (!p) return;
+        const name = document.getElementById('epName').value.trim();
+        let url = document.getElementById('epUrl').value.trim();
+        if (!name || !url) return toast("名称和链接不能为空");
+        if (!url.startsWith('http')) url = 'https://' + url;
+        p.name = name;
+        p.url = url;
+        p.icon = document.getElementById('epIcon').value.trim();
+        p.entry = document.getElementById('epEntry').value;
+        p.pwd = document.getElementById('epPwd').value.trim();
+        p.type = document.getElementById('epType').value || 'free';
+        saveDB(); closeModal('editPhoneModal'); renderMain(); toast('小手机已更新');
+    };
+
+    const origSaveEditApi = saveEditApi;
+    saveEditApi = function(){
+        const a = db.apis.find(x => x.id === currentEditApiId);
+        if (!a) return;
+        const name = document.getElementById('eaName').value.trim();
+        let url = document.getElementById('eaUrl').value.trim();
+        if (!name || !url) return toast("名称和链接不能为空");
+        if (!url.startsWith('http')) url = 'https://' + url;
+        a.name = name;
+        a.url = url;
+        a.email = document.getElementById('eaEmail').value.trim();
+        a.pwd = document.getElementById('eaPwd').value.trim();
+        a.baseUrl = document.getElementById('eaBaseUrl').value.trim();
+        a.key = document.getElementById('eaKey').value.trim();
+        a.cat = document.getElementById('eaCat').value || (db.apiCats || ['默认分类'])[0];
+        saveDB(); closeModal('editApiModal'); renderMain(); toast('API站子已更新');
+    };
+}
         renderMain();
     </script>
 </body>
