@@ -1381,7 +1381,53 @@
                 box.insertBefore(a, copyBtn);
             });
         };
-    
+    /* ===== 补丁：强制全屏 + 小手机内嵌全屏打开 ===== */
+        document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+        document.head.appendChild(Object.assign(document.createElement('style'), {
+            textContent: 'html{background:var(--bg-cream)}@media (display-mode: fullscreen){body{padding-top:max(12px,env(safe-area-inset-top))}}'
+        }));
+        function goFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) return;
+            const d = document.documentElement;
+            const f = d.requestFullscreen || d.webkitRequestFullscreen;
+            if (!f) return;
+            try { const p = f.call(d, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+        }
+        // 只要不在全屏，点一下屏幕就自动回到全屏
+        ['click', 'touchend'].forEach(t => document.addEventListener(t, goFullscreen, { passive: true }));
+
+        // 小手机：在 HappyHome 里全屏内嵌打开
+        function openInFrame(url) {
+            let m = document.getElementById('fsFrame');
+            if (!m) {
+                m = document.createElement('div');
+                m.id = 'fsFrame'; m.className = 'modal-overlay';
+                m.style.cssText = 'padding:0;background:#000;z-index:250;';
+                m.innerHTML = '<div id="fsFrameBox" style="position:absolute;inset:0"></div>' +
+                    '<div style="position:absolute;z-index:2;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;gap:6px">' +
+                    '<button id="fsOut" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff">↗</button>' +
+                    '<button id="fsClose" style="width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff">✕</button></div>';
+                document.body.appendChild(m);
+                m.querySelector('#fsClose').onclick = () => closeModal('fsFrame');
+            }
+            m.querySelector('#fsOut').onclick = () => window.open(url, '_blank');
+            document.getElementById('fsFrameBox').innerHTML = `<iframe src="${escapeHTML(url)}" style="width:100%;height:100%;border:0;background:#fff" allow="fullscreen; autoplay; camera; microphone; clipboard-read; clipboard-write" allowfullscreen></iframe>`;
+            closeModal('launchModal'); openModal('fsFrame'); goFullscreen();
+        }
+        const _cm = closeModal;
+        closeModal = function (id) { _cm(id); if (id === 'fsFrame') document.getElementById('fsFrameBox').innerHTML = ''; };
+        const _olm2 = openLaunchModal;
+        openLaunchModal = function (type, id) {
+            _olm2(type, id);
+            const item = (type === 'phone' ? db.phones : db.apis).find(x => x.id === id);
+            if (!item) return;
+            const b = document.createElement('button');
+            b.className = 'browser-btn'; b.style.cssText = 'grid-column:span 2;background:var(--accent-yellow);';
+            b.textContent = '🖥️ 全屏打开（内嵌）';
+            b.onclick = () => openInFrame(item.url);
+            const box = document.getElementById('browserButtons');
+            box.insertBefore(b, box.firstChild);
+        };
         renderMain();
     </script>
 </body>
