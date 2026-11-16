@@ -1711,6 +1711,24 @@
 .file-tags{font-size:.62rem;gap:3px}
 .file-tag{padding:0 5px}
 ` }));
+    /* ===== 补丁：长按选项框缩小（改成居中小卡片） ===== */
+        document.head.appendChild(Object.assign(document.createElement('style'), { textContent: `
+.hh-sheet{
+  left:50%; right:auto; width:min(74%, 300px);
+  transform:translate(-50%,110%);
+  border-radius:16px;
+  bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  padding:8px; max-height:64vh;
+  box-shadow:0 -4px 16px rgba(92,75,59,.16);
+}
+.hh-sheet.show{transform:translate(-50%,0)}
+.hh-sheet-title{font-size:.78rem;padding:4px 2px 6px;margin-bottom:4px}
+.hh-sheet-btn{margin:3px 0;padding:7px 10px;font-size:.78rem;border-radius:10px;font-weight:600;line-height:1.35}
+.hh-sheet-btn.cancel{margin-top:6px;padding-left:10px;font-size:.74rem}
+` }));
+    /* ===== 补丁：关掉底部那条"退出全屏"系统提示 ===== */
+        // 原生全屏会弹系统提示，这里停用；页面本身仍是铺满布局
+        goFullscreen = function () { };
         renderMain();
     </script>
 </body>
