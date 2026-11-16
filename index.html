@@ -1122,7 +1122,9 @@
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
         });
-function renderWorldbookList(container, keyword) {
+
+        renderMain();
+        function renderWorldbookList(container, keyword) {
             const list = document.createElement('div');
             list.className = 'list-container';
             const isCharacter = currentTab === 'character';
@@ -1230,7 +1232,6 @@ function renderWorldbookList(container, keyword) {
                 bindLongPress(card, () => openMoveAssetCategoryModal(asset.id), () => {
                     if (isBatchMode) { toggleSelectId(asset.id); } else { openThemePreview(asset.id); }
                 });
-        renderMain();
     </script>
 </body>
 </html>
