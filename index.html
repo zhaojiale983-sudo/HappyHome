@@ -1289,7 +1289,71 @@
             _edge = 0;
             if (dx > 70 && dy < 60) { ignorePop = Date.now() + 700; if (!handleBack()) toast('已经在首页啦～'); }
         }, { passive: true });
-    
+
+/* ===== 补丁：字体页去掉空白框 + 支持粘贴字体 URL ===== */
+        document.getElementById('themeFileInput').closest('.form-group').insertAdjacentHTML('afterend', '<div class="form-group" id="themeFontUrlBox"><label>或粘贴字体 URL（字体页可用）</label><input type="url" id="themeFontUrl" placeholder="https://.../xxx.ttf"></div>');
+        const _otim = openThemeImportModal;
+        openThemeImportModal = function (section) {
+            _otim(section);
+            document.getElementById('themeFontUrl').value = '';
+            document.getElementById('themeFontUrlBox').style.display = section === 'font' ? '' : 'none';
+        };
+
+        async function importFontUrl(url, author, func) {
+            const name = decodeURIComponent(url.split('?')[0].split('/').pop() || '网络字体');
+            const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            let blob = null;
+            try { const r = await fetch(url); if (!r.ok) throw 0; blob = await r.blob(); } catch (e) {}
+            if (blob) await themeDBAction('put', id, { id, blob, name, type: blob.type });
+            db.themeAssets.push({ id, name, section: 'font', author, func, kind: 'font', content: '', url: blob ? '' : url });
+        }
+
+        async function handleThemeImport() {
+            const files = document.getElementById('themeFileInput').files;
+            const url = document.getElementById('themeFontUrl').value.trim();
+            if (!files.length && !url) return alert('请选择文件或粘贴字体 URL');
+            if (url && !/^https?:\/\//i.test(url)) return alert('URL 需要以 http:// 或 https:// 开头');
+            const author = document.getElementById('themeImpAuthor').value;
+            const func = document.getElementById('themeImpFunc').value;
+            for (const file of files) {
+                const kind = getAssetKind(file.name);
+                if (!kind) continue;
+                const section = kind === 'font' ? 'font' : 'theme';
+                const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                let content = kind !== 'font' ? await readTextFile(file) : '';
+                await themeDBAction('put', id, { id, blob: file, name: file.name, type: file.type });
+                db.themeAssets.push({ id, name: file.name, section, author, func, kind, content });
+            }
+            if (url) await importFontUrl(url, author, func);
+            saveDB(); closeModal('themeImportModal'); renderMain(); alert('导入完成');
+        }
+
+        const _otp = openThemePreview;
+        openThemePreview = async function (id) {
+            const a = db.themeAssets.find(x => x.id === id);
+            const isFont = a && a.kind === 'font';
+            document.getElementById('themePreviewArea').style.display = isFont ? 'none' : '';
+            if (!(isFont && a.url)) return _otp(id);
+            const $ = i => document.getElementById(i);
+            currentThemeAssetId = id; themeEditorVisible = false;
+            $('themeEditName').value = a.name; $('themeTextEditor').classList.add('hidden'); $('themeEditToggle').classList.add('hidden');
+            $('themePreviewTitle').innerText = a.name; $('themePreviewHint').innerText = '';
+            $('fontSampleArea').classList.remove('hidden');
+            if (currentFontFace) { try { document.fonts.delete(currentFontFace); } catch (e) {} currentFontFace = null; }
+            const fam = `Font_${id}`;
+            try {
+                currentFontFace = new FontFace(fam, `url("${a.url}")`);
+                await currentFontFace.load(); document.fonts.add(currentFontFace);
+                $('fontPreview').style.fontFamily = `"${fam}"`;
+            } catch (e) { $('themePreviewHint').innerText = '字体加载失败：这个链接可能不允许跨域，换个直链试试'; }
+            openModal('themePreviewModal');
+        };
+        const _dta = downloadThemeAsset;
+        downloadThemeAsset = async function () {
+            const a = db.themeAssets.find(x => x.id === currentThemeAssetId);
+            if (a && a.url) return window.open(a.url, '_blank');
+            return _dta();
+        }
         renderMain();
     </script>
 </body>
