@@ -44,13 +44,14 @@ if [ -z "$ANDROID_JAR" ]; then
         if [ -f "$cand" ]; then ANDROID_JAR="$cand"; break; fi
     done
 fi
-[ -n "$ANDROID_JAR" ] && [ -f "$ANDROID_JAR" ] || { echo "找不到 android.jar"; exit 1; }
-echo "android.jar = $ANDROID_JAR"
+if [ -z "$ANDROID_JAR" ]; then
+    for base in "$ANDROID_HOME" "$HOME/Android/Sdk" "$HOME/Library/Android/sdk" /usr/local/lib/android/sdk; do
+        [ -d "$base/platforms" ] || continue
+        cand=$(ls -1 "$base"/platforms/*/android.jar 2>/dev/null | sort -V | tail -1)
+        if [ -n "$cand" ]; then ANDROID_JAR="$cand"; break; fi
+    done
+fi
 
-USE_D8=0
-if [ -n "$D8" ] && [ -x "$D8" ]; then USE_D8=1;
-elif [ -n "$DX" ] && [ -x "$DX" ]; then USE_D8=0;
-else echo "找不到 d8 或 dx"; exit 1; fi
 
 rm -rf out
 mkdir -p out/gen out/classes out/dex
