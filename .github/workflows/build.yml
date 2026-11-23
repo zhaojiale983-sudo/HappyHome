@@ -7,25 +7,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Build APK (aapt2 + javac + d8)
+      - name: 生成测试文件
         run: |
-          # 这里放你原本的打包命令，保持不变
-          # 保证最后输出 HappyHome.apk 和 HappyHome-打包.zip 到仓库根目录
-          echo "run your compile command here"
+          echo "test" > HappyHome.apk
+          echo "zip" > HappyHome-打包.zip
 
-      - name: Upload APK & Zip
+      - name: Upload files
         uses: actions/upload-artifact@v4
         with:
-          name: HappyHome-build
+          name: HappyHome-安装包
           path: |
             ./HappyHome.apk
             ./HappyHome-打包.zip
