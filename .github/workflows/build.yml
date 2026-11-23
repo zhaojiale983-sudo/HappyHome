@@ -1,24 +1,54 @@
 name: Build HappyHome APK
+
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 生成测试文件
-        run: |
-          echo "test" > HappyHome.apk
-          echo "zip" > HappyHome-打包.zip
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
 
-      - name: Upload files
+      - name: 定位 Android SDK
+        run: |
+          if [ -z "$ANDROID_HOME" ] || [ ! -d "$ANDROID_HOME" ]; then
+            for d in /usr/local/lib/android/sdk "$HOME/Android/Sdk"; do
+              if [ -d "$d" ]; then export ANDROID_HOME="$d"; break; fi
+            done
+          fi
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "SDK 目录：$ANDROID_HOME"
+          SDKMGR=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1)
+          if [ -n "$SDKMGR" ]; then
+            yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+            "$SDKMGR" "platforms;android-33" > /dev/null 2>&1 || true
+            "$SDKMGR" "build-tools;33.0.2" > /dev/null 2>&1 || true
+          else
+            echo "没有 sdkmanager，直接用镜像自带 SDK"
+          fi
+
+      - name: 检查仓库源码
+        run: |
+          echo "仓库结构："
+          find app scripts -maxdepth 6 -type f | sort || true
+          test -f app/src/com/happyhome/hhn/MainActivity.java || { echo "❌ 缺 MainActivity.java"; exit 1; }
+          test -f app/AndroidManifest.xml || { echo "❌ 缺 AndroidManifest.xml"; exit 1; }
+
+      - name: 编译 APK
+        run: bash scripts/build-apk.sh
+
+      - name: 上传 APK
         uses: actions/upload-artifact@v4
         with:
-          name: HappyHome-安装包
-          path: |
-            ./HappyHome.apk
-            ./HappyHome-打包.zip
+          name: HappyHome-Native-apk
+          path: HappyHome-Native.apk
+          if-no-files-found: error
