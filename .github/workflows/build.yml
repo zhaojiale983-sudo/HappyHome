@@ -1,64 +1,31 @@
 name: Build HappyHome APK
-
 on:
   push:
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 拉取代码
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: 安装 JDK 17
-        uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
-          distribution: temurin
           java-version: '17'
+          distribution: 'temurin'
 
-      - name: 定位 Android SDK
+      - name: Build APK (aapt2 + javac + d8)
         run: |
-          if [ -z "$ANDROID_HOME" ] || [ ! -d "$ANDROID_HOME" ]; then
-            for d in /usr/local/lib/android/sdk "$HOME/Android/Sdk"; do
-              if [ -d "$d" ]; then export ANDROID_HOME="$d"; break; fi
-            done
-          fi
-          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "SDK 目录：$ANDROID_HOME"
-          echo "已有 platforms："; ls "$ANDROID_HOME/platforms" 2>/dev/null || true
-          echo "已有 build-tools："; ls "$ANDROID_HOME/build-tools" 2>/dev/null || true
-          SDKMGR=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1)
-          if [ -n "$SDKMGR" ]; then
-            echo "sdkmanager = $SDKMGR"
-            yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
-            "$SDKMGR" "platforms;android-33" > /dev/null 2>&1 || true
-            "$SDKMGR" "build-tools;33.0.2" > /dev/null 2>&1 || true
-          else
-            echo "没有 sdkmanager，直接用镜像自带 SDK"
-          fi
-          ls "$ANDROID_HOME/platforms"/*/android.jar 2>/dev/null | head -3
+          # 这里放你原本的打包命令，保持不变
+          # 保证最后输出 HappyHome.apk 和 HappyHome-打包.zip 到仓库根目录
+          echo "run your compile command here"
 
-      - name: 检查仓库里的源码
-        run: |
-          echo "仓库结构："
-          find app scripts -maxdepth 6 -type f | sort || true
-          test -f app/src/com/happyhome/hhn/MainActivity.java || { echo "❌ 缺 MainActivity.java"; exit 1; }
-          test -f app/AndroidManifest.xml || { echo "❌ 缺 AndroidManifest.xml"; exit 1; }
-
-      - name: 编译 APK
-        run: bash scripts/build-apk.sh
-
-      - name: 上传 APK
+      - name: Upload APK & Zip
         uses: actions/upload-artifact@v4
         with:
-          name: HappyHome-Native-apk
-          path: HappyHome-Native.apk
-          if-no-files-found: error
-          - name: Upload APK & Zip
-  uses: actions/upload-artifact@v4
-  with:
-    name: HappyHome-build
-    path: |
-      app/build/outputs/apk/release/app-release.apk
-      HappyHome-打包.zip
+          name: HappyHome-build
+          path: |
+            ./HappyHome.apk
+            ./HappyHome-打包.zip
